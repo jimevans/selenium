@@ -14,31 +14,26 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef COMMANDLINEARGUMENTS_H_
-#define COMMANDLINEARGUMENTS_H_
+#include "SessionCommandHandler.h"
 
-#include <map>
-#include <string>
+#include "../webdriver-server/command_handler.h"
+#include "../webdriver-server/errorcodes.h"
+#include "../webdriver-server/logging.h"
 
-using namespace std;
+namespace webdriver {
 
-class CommandLineArguments {
- public:
-  CommandLineArguments(int arg_count, _TCHAR* arg_array[]);
-  virtual ~CommandLineArguments(void);
+SessionCommandHandler::SessionCommandHandler() {
+}
 
-  std::wstring GetValue(std::wstring arg_name,
-                        std::wstring default_value);
-  bool is_help_requested(void) const { return this->is_help_requested_; }
-  bool is_version_requested(void) const { return this->is_version_requested_; }
+SessionCommandHandler::~SessionCommandHandler() {
+}
 
- private:
-  void ParseArguments(int argc, _TCHAR* argv[]);
-  int GetSwitchDelimiterLength(std::wstring arg);
+void SessionCommandHandler::ExecuteInternal(
+    const IESession& executor,
+    const ParametersMap& command_parameters,
+    Response* response) {
+  LOG(TRACE) << "Entering DriverCommandHandler::ExecuteInternal";
+  response->SetErrorResponse(501, "Command not implemented");
+}
 
-  bool is_help_requested_;
-  bool is_version_requested_;
-  std::map<std::wstring, std::wstring> args_map_;
-};
-
-#endif  // COMMANDLINEARGUMENTS_H_
+} // namespace webdriver

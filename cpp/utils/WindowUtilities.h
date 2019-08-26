@@ -14,31 +14,29 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef COMMANDLINEARGUMENTS_H_
-#define COMMANDLINEARGUMENTS_H_
+#ifndef WEBDRIVER_IE_WINDOWUTILITIES_H_
+#define WEBDRIVER_IE_WINDOWUTILITIES_H_
 
-#include <map>
 #include <string>
+#include <vector>
 
-using namespace std;
+namespace webdriver {
 
-class CommandLineArguments {
- public:
-  CommandLineArguments(int arg_count, _TCHAR* arg_array[]);
-  virtual ~CommandLineArguments(void);
-
-  std::wstring GetValue(std::wstring arg_name,
-                        std::wstring default_value);
-  bool is_help_requested(void) const { return this->is_help_requested_; }
-  bool is_version_requested(void) const { return this->is_version_requested_; }
-
+class WindowUtilities
+{
  private:
-  void ParseArguments(int argc, _TCHAR* argv[]);
-  int GetSwitchDelimiterLength(std::wstring arg);
+  WindowUtilities(void);
+  ~WindowUtilities(void);
 
-  bool is_help_requested_;
-  bool is_version_requested_;
-  std::map<std::wstring, std::wstring> args_map_;
+ public:
+  static void Wait(long wait_in_milliseconds);
+  static void WaitWithoutMsgPump(long wait_in_milliseconds);
+  static HWND GetChildWindow(HWND hwnd, std::wstring name);
+  static std::string GetWindowCaption(HWND hwnd);
+  static void GetProcessesByName(const std::wstring& process_name,
+                                 std::vector<DWORD>* process_ids);
 };
 
-#endif  // COMMANDLINEARGUMENTS_H_
+} // webdriver
+
+#endif //WEBDRIVER_IE_WINDOWUTILITIES_H_

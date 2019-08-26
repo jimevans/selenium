@@ -14,31 +14,28 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef COMMANDLINEARGUMENTS_H_
-#define COMMANDLINEARGUMENTS_H_
+// stdafx.h : include file for standard system include files,
+// or project specific include files that are used frequently, but
+// are changed infrequently
+//
 
-#include <map>
-#include <string>
+#pragma once
 
-using namespace std;
+#include "targetver.h"
 
-class CommandLineArguments {
- public:
-  CommandLineArguments(int arg_count, _TCHAR* arg_array[]);
-  virtual ~CommandLineArguments(void);
+#include <stdio.h>
+#include <tchar.h>
 
-  std::wstring GetValue(std::wstring arg_name,
-                        std::wstring default_value);
-  bool is_help_requested(void) const { return this->is_help_requested_; }
-  bool is_version_requested(void) const { return this->is_version_requested_; }
+#define WIN32_LEAN_AND_MEAN             // Exclude rarely-used stuff from Windows headers
+// Windows Header Files:
+#include <windows.h>
 
- private:
-  void ParseArguments(int argc, _TCHAR* argv[]);
-  int GetSwitchDelimiterLength(std::wstring arg);
+#define _ATL_CSTRING_EXPLICIT_CONSTRUCTORS      // some CString constructors will be explicit
 
-  bool is_help_requested_;
-  bool is_version_requested_;
-  std::map<std::wstring, std::wstring> args_map_;
-};
+// A macro to disallow the copy constructor and operator= functions
+// This should be used in the private: declarations for a class
+#define DISALLOW_COPY_AND_ASSIGN(TypeName) \
+  TypeName(const TypeName&);               \
+  void operator=(const TypeName&)
 
-#endif  // COMMANDLINEARGUMENTS_H_
+// TODO: reference additional headers your program requires here

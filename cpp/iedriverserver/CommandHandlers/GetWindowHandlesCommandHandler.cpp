@@ -14,31 +14,32 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef COMMANDLINEARGUMENTS_H_
-#define COMMANDLINEARGUMENTS_H_
+#include "GetWindowHandlesCommandHandler.h"
 
-#include <map>
-#include <string>
+#include "../IESession.h"
 
-using namespace std;
+namespace webdriver {
 
-class CommandLineArguments {
- public:
-  CommandLineArguments(int arg_count, _TCHAR* arg_array[]);
-  virtual ~CommandLineArguments(void);
+GetWindowHandlesCommandHandler::GetWindowHandlesCommandHandler(void) {
+}
 
-  std::wstring GetValue(std::wstring arg_name,
-                        std::wstring default_value);
-  bool is_help_requested(void) const { return this->is_help_requested_; }
-  bool is_version_requested(void) const { return this->is_version_requested_; }
+GetWindowHandlesCommandHandler::~GetWindowHandlesCommandHandler(void) {
+}
 
- private:
-  void ParseArguments(int argc, _TCHAR* argv[]);
-  int GetSwitchDelimiterLength(std::wstring arg);
+void GetWindowHandlesCommandHandler::ExecuteInternal(
+    const IESession& executor,
+    const ParametersMap& command_parameters,
+    Response* response) {
+  std::vector<std::string> handle_list;
+  executor.GetInstanceIdList(&handle_list);
 
-  bool is_help_requested_;
-  bool is_version_requested_;
-  std::map<std::wstring, std::wstring> args_map_;
-};
+  Json::Value handles(Json::arrayValue);
+  std::vector<std::string>::const_iterator it = handle_list.begin();
+  for (; it != handle_list.end(); ++it) {
+    handles.append(*it);
+  }
 
-#endif  // COMMANDLINEARGUMENTS_H_
+  response->SetSuccessResponse(handles);
+}
+
+} // namespace webdriver

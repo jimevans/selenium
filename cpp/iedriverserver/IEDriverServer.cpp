@@ -14,10 +14,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "stdafx.h"
-#include "resource.h"
-#include "CommandLineArguments.h"
-#include "IEServer.h"
 #include <algorithm>
 #include <iostream>
 #include <map>
@@ -25,12 +21,11 @@
 #include <string>
 #include <vector>
 
-// The prototypes for these functions must match those exported
-// by the .dll produced by the IEDriver project in this solution.
-// The definitions of these functions can be found in WebDriver.h
-// in that project.
-typedef void* (__cdecl *STARTSERVERPROC)(int, const std::wstring&, const std::wstring&, const std::wstring&, const std::wstring&, const std::wstring&);
-typedef void (__cdecl *STOPSERVERPROC)(void);
+#include "../utils/StringUtilities.h"
+
+#include "resource.h"
+#include "CommandLineArguments.h"
+#include "IEServer.h"
 
 #define ERR_DLL_EXTRACT_FAIL 1
 #define ERR_DLL_LOAD_FAIL 2
@@ -203,7 +198,9 @@ int _tmain(int argc, _TCHAR* argv[]) {
 
   std::wstring extraction_path(&temp_path_buffer[0]);
 
-  std::wstring extraction_path_arg = args.GetValue(EXTRACTPATH_COMMAND_LINE_ARG, L"");
+  std::wstring extraction_path_arg = args.GetValue(
+      EXTRACTPATH_COMMAND_LINE_ARG,
+      L"");
   if (extraction_path_arg.size() != 0) {
     extraction_path = extraction_path_arg;
   }
@@ -233,23 +230,6 @@ int _tmain(int argc, _TCHAR* argv[]) {
     return ERR_DLL_EXTRACT_FAIL;
   }
 
-  HMODULE module_handle = ::LoadLibrary(temp_file_name.c_str());
-  if (module_handle == NULL) {
-    std::wcout << L"Failed to load the library from temp directory: "
-               << temp_file_name;
-    return ERR_DLL_LOAD_FAIL;
-  }
-
-  STARTSERVERPROC start_server_ex_proc = reinterpret_cast<STARTSERVERPROC>(
-      ::GetProcAddress(module_handle, START_SERVER_EX_API_NAME));
-  STOPSERVERPROC stop_server_proc = reinterpret_cast<STOPSERVERPROC>(
-      ::GetProcAddress(module_handle, STOP_SERVER_API_NAME));
-  if (start_server_ex_proc == NULL || stop_server_proc == NULL) {
-    std::wcout << L"Could not find entry point in extracted library: "
-               << temp_file_name;
-    return ERR_FUNCTION_NOT_FOUND;
-  }
-
   int port = _wtoi(args.GetValue(PORT_COMMAND_LINE_ARG, L"5555").c_str());
   std::wstring host_address = args.GetValue(HOST_COMMAND_LINE_ARG, L"");
   std::wstring log_level = args.GetValue(LOGLEVEL_COMMAND_LINE_ARG, L"");
@@ -258,7 +238,6 @@ int _tmain(int argc, _TCHAR* argv[]) {
       BOOLEAN_COMMAND_LINE_ARG_MISSING_VALUE).size() == 0;
   std::wstring executable_version = GetExecutableVersion();
   std::wstring executable_architecture = GetProcessArchitectureDescription();
-  std::wstring implementation = L"";
   std::wstring whitelist = args.GetValue(ACL_COMMAND_LINE_ARG, L"");
 
   // coerce log level and implementation to uppercase, making the values
@@ -267,23 +246,21 @@ int _tmain(int argc, _TCHAR* argv[]) {
                  log_level.end(),
                  log_level.begin(),
                  toupper);
-  std::transform(implementation.begin(),
-                 implementation.end(),
-                 implementation.begin(),
-                 toupper);
 
   if (args.is_version_requested()) {
     std::wcout << L"IEDriverServer.exe"
                << L" " << executable_version
                << L" (" << executable_architecture << L")" << std::endl;
   } else {
-    void* server_value = start_server_ex_proc(port,
-                                              host_address,
-                                              log_level,
-                                              log_file,
-                                              executable_version + L" (" + executable_architecture + L")",
-                                              whitelist);
-    if (server_value == NULL) {
+    webdriver::IEServer server(
+        port,
+        webdriver::StringUtilities::ToString(host_address),
+        webdriver::StringUtilities::ToString(log_level),
+        webdriver::StringUtilities::ToString(log_file),
+        webdriver::StringUtilities::ToString(executable_version + L" (" + executable_architecture + L")"),
+        webdriver::StringUtilities::ToString(whitelist));
+    bool server_started = server.Start();
+    if (!server_started) {
       std::wcout << L"Failed to start the server with: "
                  << L"port = '" << port << L"', "
                  << L"host = '" << host_address << L"', "
@@ -341,10 +318,9 @@ int _tmain(int argc, _TCHAR* argv[]) {
                                         event_name.c_str());
     ::WaitForSingleObject(event_handle, INFINITE);
     ::CloseHandle(event_handle);
-    stop_server_proc();
+    server.Stop();
   }
 
-  ::FreeLibrary(module_handle);
   ::DeleteFile(temp_file_name.c_str());
   return 0;
 }

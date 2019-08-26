@@ -66,7 +66,7 @@ Server::Server(const int port,
                const std::string& log_level,
                const std::string& log_file,
                const std::string& acl) {
-    this->Initialize(port, host, log_level, log_file, acl);
+  this->Initialize(port, host, log_level, log_file, acl);
 }
 
 Server::~Server(void) {
@@ -394,18 +394,13 @@ std::string Server::DispatchCommand(const std::string& uri,
                                                  session_exists_message);
         serialized_response = session_exists_response.Serialize();
       } else {
-        // Compile the serialized JSON representation of the command by hand.
-        std::string serialized_command = "{ \"name\" : \"" + command + "\"";
-        serialized_command.append(", \"locator\" : ");
-        serialized_command.append(locator_parameters);
-        serialized_command.append(", \"parameters\" : ");
-        serialized_command.append(command_body);
-        serialized_command.append(" }");
         if (command == webdriver::CommandType::NewSession) {
           session_handle = this->InitializeSession();
         }
         bool session_is_valid = session_handle->ExecuteCommand(
-            serialized_command,
+            command,
+            locator_parameters,
+            command_body,
             &serialized_response);
         if (command == webdriver::CommandType::NewSession) {
           Response new_session_response;
@@ -444,7 +439,8 @@ std::string Server::ListSessions() {
 
     SessionHandle session = it->second;
     std::string serialized_session_response;
-    session->ExecuteCommand(get_caps_command, &serialized_session_response);
+    session->ExecuteCommand(webdriver::CommandType::GetSessionCapabilities,
+      "{}", "{}", &serialized_session_response);
 
     Response session_response;
     session_response.Deserialize(serialized_session_response);

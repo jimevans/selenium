@@ -13,6 +13,12 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="Header Files\CommandHandlers">
+      <UniqueIdentifier>{ddad34fa-2a84-4d24-bd36-65643430f6b7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\CommandHandlers">
+      <UniqueIdentifier>{3fa59453-872d-4360-8b36-c6d7bc81b6d0}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="CommandLineArguments.cpp">
@@ -23,6 +29,72 @@
     </ClCompile>
     <ClCompile Include="stdafx.cpp">
       <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="IESession.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="IEServer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="BrowserFactory.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="SessionCommandHandler.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="SessionCommandRepository.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="CommandHandlers\QuitCommandHandler.cpp">
+      <Filter>Source Files\CommandHandlers</Filter>
+    </ClCompile>
+    <ClCompile Include="cominterfaces.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="CommandHandlers\NewSessionCommandHandler.cpp">
+      <Filter>Source Files\CommandHandlers</Filter>
+    </ClCompile>
+    <ClCompile Include="BrowserHost.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Alert.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="CommandHandlers\AcceptAlertCommandHandler.cpp">
+      <Filter>Source Files\CommandHandlers</Filter>
+    </ClCompile>
+    <ClCompile Include="CommandHandlers\DismissAlertCommandHandler.cpp">
+      <Filter>Source Files\CommandHandlers</Filter>
+    </ClCompile>
+    <ClCompile Include="CommandHandlers\GetAlertTextCommandHandler.cpp">
+      <Filter>Source Files\CommandHandlers</Filter>
+    </ClCompile>
+    <ClCompile Include="CommandHandlers\SendAlertTextCommandHandler.cpp">
+      <Filter>Source Files\CommandHandlers</Filter>
+    </ClCompile>
+    <ClCompile Include="CommandHandlers\GetWindowHandleCommandHandler.cpp">
+      <Filter>Source Files\CommandHandlers</Filter>
+    </ClCompile>
+    <ClCompile Include="CommandHandlers\GetWindowHandlesCommandHandler.cpp">
+      <Filter>Source Files\CommandHandlers</Filter>
+    </ClCompile>
+    <ClCompile Include="CommandHandlers\SwitchToWindowCommandHandler.cpp">
+      <Filter>Source Files\CommandHandlers</Filter>
+    </ClCompile>
+    <ClCompile Include="CommandHandlers\CloseWindowCommandHandler.cpp">
+      <Filter>Source Files\CommandHandlers</Filter>
+    </ClCompile>
+    <ClCompile Include="InstanceManager.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="SessionSettings.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="CommandHandlers\SetTimeoutsCommandHandler.cpp">
+      <Filter>Source Files\CommandHandlers</Filter>
+    </ClCompile>
+    <ClCompile Include="CommandHandlers\GetTimeoutsCommandHandler.cpp">
+      <Filter>Source Files\CommandHandlers</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -37,6 +109,78 @@
     </ClInclude>
     <ClInclude Include="targetver.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="IEServer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="IESession.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="BrowserFactory.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="SessionCommandHandler.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="CommandHandlers\NewSessionCommandHandler.h">
+      <Filter>Header Files\CommandHandlers</Filter>
+    </ClInclude>
+    <ClInclude Include="CommandHandlers\QuitCommandHandler.h">
+      <Filter>Header Files\CommandHandlers</Filter>
+    </ClInclude>
+    <ClInclude Include="cominterfaces.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="BrowserHost.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="SessionCommandRepository.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Alert.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="CommandHandlers\AcceptAlertCommandHandler.h">
+      <Filter>Header Files\CommandHandlers</Filter>
+    </ClInclude>
+    <ClInclude Include="CommandHandlers\DismissAlertCommandHandler.h">
+      <Filter>Header Files\CommandHandlers</Filter>
+    </ClInclude>
+    <ClInclude Include="CommandHandlers\GetAlertTextCommandHandler.h">
+      <Filter>Header Files\CommandHandlers</Filter>
+    </ClInclude>
+    <ClInclude Include="CommandHandlers\SendAlertTextCommandHandler.h">
+      <Filter>Header Files\CommandHandlers</Filter>
+    </ClInclude>
+    <ClInclude Include="CommandHandlers\GetWindowHandleCommandHandler.h">
+      <Filter>Header Files\CommandHandlers</Filter>
+    </ClInclude>
+    <ClInclude Include="CommandHandlers\GetWindowHandlesCommandHandler.h">
+      <Filter>Header Files\CommandHandlers</Filter>
+    </ClInclude>
+    <ClInclude Include="CommandHandlers\SwitchToWindowCommandHandler.h">
+      <Filter>Header Files\CommandHandlers</Filter>
+    </ClInclude>
+    <ClInclude Include="CommandHandlers\CloseWindowCommandHandler.h">
+      <Filter>Header Files\CommandHandlers</Filter>
+    </ClInclude>
+    <ClInclude Include="BrowserInfo.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="InstanceManager.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="SessionSettings.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ProxySettings.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="CommandHandlers\GetTimeoutsCommandHandler.h">
+      <Filter>Header Files\CommandHandlers</Filter>
+    </ClInclude>
+    <ClInclude Include="CommandHandlers\SetTimeoutsCommandHandler.h">
+      <Filter>Header Files\CommandHandlers</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

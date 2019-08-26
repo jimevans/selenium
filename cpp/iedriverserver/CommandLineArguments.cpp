@@ -15,7 +15,11 @@
 // limitations under the License.
 
 #include "CommandLineArguments.h"
-#include "logging.h"
+
+#include <algorithm>
+#include <vector>
+
+#include "../webdriver-server/logging.h"
 
 CommandLineArguments::CommandLineArguments(int argc, _TCHAR* argv[]) {
   this->ParseArguments(argc, argv);
@@ -53,7 +57,10 @@ void CommandLineArguments::ParseArguments(int argc, _TCHAR* argv[]) {
 
     // coerce all argument names to lowercase, making argument names
     // case-insensitive.
-    std::transform(arg_name.begin(), arg_name.end(), arg_name.begin(), tolower);
+    std::transform(arg_name.begin(),
+                   arg_name.end(),
+                   arg_name.begin(),
+                   tolower);
 
     // trim single and double quotes from argument value begin and end
     size_t startpos = arg_value.find_first_not_of(L"'\"");    

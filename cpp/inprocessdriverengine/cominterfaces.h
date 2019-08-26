@@ -14,31 +14,21 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef COMMANDLINEARGUMENTS_H_
-#define COMMANDLINEARGUMENTS_H_
+//#ifndef WEBDRIVER_INPROCESSDRIVERENGINE_COMINTERFACES_H_
+//#define WEBDRIVER_INPROCESSDRIVERENGINE_COMINTERFACES_H_
 
-#include <map>
-#include <string>
+EXTERN_C const IID IID_IInProcessDriver;
 
-using namespace std;
-
-class CommandLineArguments {
+MIDL_INTERFACE("c4edf20a-fc4d-4f04-b029-c8d338210d00")
+IInProcessDriver : public IUnknown {
  public:
-  CommandLineArguments(int arg_count, _TCHAR* arg_array[]);
-  virtual ~CommandLineArguments(void);
-
-  std::wstring GetValue(std::wstring arg_name,
-                        std::wstring default_value);
-  bool is_help_requested(void) const { return this->is_help_requested_; }
-  bool is_version_requested(void) const { return this->is_version_requested_; }
-
- private:
-  void ParseArguments(int argc, _TCHAR* argv[]);
-  int GetSwitchDelimiterLength(std::wstring arg);
-
-  bool is_help_requested_;
-  bool is_version_requested_;
-  std::map<std::wstring, std::wstring> args_map_;
 };
 
-#endif  // COMMANDLINEARGUMENTS_H_
+EXTERN_C const IID LIBID_InProcessDriverEngineLib;
+
+EXTERN_C const CLSID CLSID_InProcessDriver;
+
+class DECLSPEC_UUID("ff5186d0-7673-4ea6-8113-bc960c030891")
+InProcessDriver;
+
+//#endif // WEBDRIVER_INPROCESSDRIVERENGINE_COMINTERFACES_H_

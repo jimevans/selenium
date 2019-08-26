@@ -14,31 +14,33 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef COMMANDLINEARGUMENTS_H_
-#define COMMANDLINEARGUMENTS_H_
+#ifndef WEBDRIVER_IE_IESERVER_H_
+#define WEBDRIVER_IE_IESERVER_H_
 
-#include <map>
-#include <string>
+#include "../webdriver-server/server.h"
 
-using namespace std;
+#define IESERVER_SHUTDOWN_EVENT_NAME L"IEServer_Shutdown_Event"
 
-class CommandLineArguments {
+namespace webdriver {
+
+class IEServer : public Server {
  public:
-  CommandLineArguments(int arg_count, _TCHAR* arg_array[]);
-  virtual ~CommandLineArguments(void);
+  IEServer(int port,
+           const std::string& host,
+           const std::string& log_level,
+           const std::string& log_file,
+           const std::string& version,
+           const std::string& acl);
+  virtual ~IEServer(void);
 
-  std::wstring GetValue(std::wstring arg_name,
-                        std::wstring default_value);
-  bool is_help_requested(void) const { return this->is_help_requested_; }
-  bool is_version_requested(void) const { return this->is_version_requested_; }
-
+ protected:
+  virtual SessionHandle InitializeSession(void);
+  virtual std::string GetStatus(void);
+  virtual void ShutDown(void);
  private:
-  void ParseArguments(int argc, _TCHAR* argv[]);
-  int GetSwitchDelimiterLength(std::wstring arg);
-
-  bool is_help_requested_;
-  bool is_version_requested_;
-  std::map<std::wstring, std::wstring> args_map_;
+  std::string version_;
 };
 
-#endif  // COMMANDLINEARGUMENTS_H_
+} // namespace webdriver
+
+#endif // WEBDRIVER_IE_IESERVER_H_

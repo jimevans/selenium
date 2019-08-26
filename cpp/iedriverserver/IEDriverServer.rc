@@ -50,8 +50,8 @@ END
 //
 
 VS_VERSION_INFO VERSIONINFO
- FILEVERSION 3,150,0,0
- PRODUCTVERSION 3,150,0,0
+ FILEVERSION 3,9999,0,0
+ PRODUCTVERSION 3,9999,0,0
  FILEFLAGSMASK 0x3fL
 #ifdef _DEBUG
  FILEFLAGS 0x1L
@@ -68,12 +68,12 @@ BEGIN
         BEGIN
             VALUE "CompanyName", "Software Freedom Conservancy"
             VALUE "FileDescription", "Command line server for the IE driver"
-            VALUE "FileVersion", "3.150.0.0"
+            VALUE "FileVersion", "3.9999.0.0"
             VALUE "InternalName", "IEDriverServer.exe"
             VALUE "LegalCopyright", "Copyright (C) 2019"
             VALUE "OriginalFilename", "IEDriverServer.exe"
             VALUE "ProductName", "Selenium WebDriver"
-            VALUE "ProductVersion", "3.150.0.0"
+            VALUE "ProductVersion", "3.9999.0.0"
         END
     END
     BLOCK "VarFileInfo"
@@ -89,15 +89,15 @@ END
 //
 #ifdef _DEBUG
 #ifdef _WIN64
-IDR_DRIVER_LIBRARY      BINARY                  "..\\..\\build\\cpp\\x64\\Debug\\IEDriver.dll"
+//IDR_DRIVER_LIBRARY      BINARY                  "..\\..\\build\\cpp\\x64\\Debug\\IEDriver.dll"
 #else
-IDR_DRIVER_LIBRARY      BINARY                  "..\\..\\build\\cpp\\Win32\\Debug\\IEDriver.dll"
+//IDR_DRIVER_LIBRARY      BINARY                  "..\\..\\build\\cpp\\Win32\\Debug\\IEDriver.dll"
 #endif    // _WIN64
 #else
 #ifdef _WIN64
-IDR_DRIVER_LIBRARY      BINARY                  "..\\..\\build\\cpp\\x64\\Release\\IEDriver.dll"
+//IDR_DRIVER_LIBRARY      BINARY                  "..\\..\\build\\cpp\\x64\\Release\\IEDriver.dll"
 #else
-IDR_DRIVER_LIBRARY      BINARY                  "..\\..\\build\\cpp\\Win32\\Release\\IEDriver.dll"
+//IDR_DRIVER_LIBRARY      BINARY                  "..\\..\\build\\cpp\\Win32\\Release\\IEDriver.dll"
 #endif    // _WIN64
 #endif    // _DEBUG
 #endif    // English (United States) resources

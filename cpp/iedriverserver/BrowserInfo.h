@@ -14,31 +14,23 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef COMMANDLINEARGUMENTS_H_
-#define COMMANDLINEARGUMENTS_H_
+#ifndef WEBDRIVER_IE_BROWSERWINDOWHANDLES_H_
+#define WEBDRIVER_IE_BROWSERWINDOWHANDLES_H_
 
-#include <map>
 #include <string>
 
-using namespace std;
+namespace webdriver {
 
-class CommandLineArguments {
- public:
-  CommandLineArguments(int arg_count, _TCHAR* arg_array[]);
-  virtual ~CommandLineArguments(void);
-
-  std::wstring GetValue(std::wstring arg_name,
-                        std::wstring default_value);
-  bool is_help_requested(void) const { return this->is_help_requested_; }
-  bool is_version_requested(void) const { return this->is_version_requested_; }
-
- private:
-  void ParseArguments(int argc, _TCHAR* argv[]);
-  int GetSwitchDelimiterLength(std::wstring arg);
-
-  bool is_help_requested_;
-  bool is_version_requested_;
-  std::map<std::wstring, std::wstring> args_map_;
+struct BrowserInfo {
+  HWND instance_manager_window_handle;
+  HWND browser_host_window_handle;
+  HWND in_proc_executor_window_handle;
+  HWND content_window_handle;
+  HWND top_level_window_handle;
+  HWND tab_window_handle;
+  std::string browser_id;
 };
 
-#endif  // COMMANDLINEARGUMENTS_H_
+}  // namespace webdriver
+
+#endif  // WEBDRIVER_IE_BROWSERWINDOWHANDLES_H_

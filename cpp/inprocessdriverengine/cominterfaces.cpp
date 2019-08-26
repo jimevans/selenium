@@ -14,31 +14,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef COMMANDLINEARGUMENTS_H_
-#define COMMANDLINEARGUMENTS_H_
+#include "cominterfaces.h"
 
-#include <map>
-#include <string>
+EXTERN_C const IID IID_IInProcessDriver = { 0xc4edf20a, 0xfc4d, 0x4f04, { 0xb0, 0x29, 0xc8, 0xd3, 0x38, 0x21, 0x0d, 0x00 } };
 
-using namespace std;
+EXTERN_C const IID LIBID_InProcessDriverEngineLib = { 0xd2dd85a7, 0x1c28, 0x4312, { 0x87, 0xbf, 0x17, 0x35, 0x8a, 0xa4, 0xd5, 0x23 } };
 
-class CommandLineArguments {
- public:
-  CommandLineArguments(int arg_count, _TCHAR* arg_array[]);
-  virtual ~CommandLineArguments(void);
-
-  std::wstring GetValue(std::wstring arg_name,
-                        std::wstring default_value);
-  bool is_help_requested(void) const { return this->is_help_requested_; }
-  bool is_version_requested(void) const { return this->is_version_requested_; }
-
- private:
-  void ParseArguments(int argc, _TCHAR* argv[]);
-  int GetSwitchDelimiterLength(std::wstring arg);
-
-  bool is_help_requested_;
-  bool is_version_requested_;
-  std::map<std::wstring, std::wstring> args_map_;
-};
-
-#endif  // COMMANDLINEARGUMENTS_H_
+EXTERN_C const CLSID CLSID_InProcessDriver = { 0xff5186d0, 0x7673, 0x4ea6, { 0x81, 0x13, 0xbc, 0x96, 0x0c, 0x03, 0x08, 0x91 } };

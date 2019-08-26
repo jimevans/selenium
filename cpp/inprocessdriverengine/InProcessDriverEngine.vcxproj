@@ -1,5 +1,5 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
-<Project DefaultTargets="Build" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
       <Configuration>Debug</Configuration>
@@ -19,36 +19,34 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <VCProjectVersion>15.0</VCProjectVersion>
-    <ProjectGuid>{D419FE07-1F4C-457C-952C-9492854F7C36}</ProjectGuid>
-    <RootNamespace>IEDriverServer</RootNamespace>
+    <VCProjectVersion>16.0</VCProjectVersion>
+    <ProjectGuid>{0575B1AC-A90A-4177-BE0D-ADAAFF8A1B88}</ProjectGuid>
+    <Keyword>AtlProj</Keyword>
     <WindowsTargetPlatformVersion>8.1</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
-    <ConfigurationType>Application</ConfigurationType>
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
     <PlatformToolset>v142</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
-    <ConfigurationType>Application</ConfigurationType>
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
     <PlatformToolset>v142</PlatformToolset>
-    <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
-    <ConfigurationType>Application</ConfigurationType>
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
     <PlatformToolset>v142</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
-    <ConfigurationType>Application</ConfigurationType>
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
     <PlatformToolset>v142</PlatformToolset>
-    <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
@@ -72,33 +70,63 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <OutDir>$(ProjectDir)..\..\build\cpp\$(Platform)\$(Configuration)\</OutDir>
     <IntDir>$(ProjectDir)..\..\build\cpp\intermediate\$(ProjectName)\$(Platform)\$(Configuration)\</IntDir>
+    <IgnoreImportLibrary>true</IgnoreImportLibrary>
+    <TargetName>$(ProjectName)</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <OutDir>$(ProjectDir)..\..\build\cpp\$(Platform)\$(Configuration)\</OutDir>
     <IntDir>$(ProjectDir)..\..\build\cpp\intermediate\$(ProjectName)\$(Platform)\$(Configuration)\</IntDir>
+    <IgnoreImportLibrary>true</IgnoreImportLibrary>
+    <TargetName>$(ProjectName)</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <OutDir>$(ProjectDir)..\..\build\cpp\$(Platform)\$(Configuration)\</OutDir>
     <IntDir>$(ProjectDir)..\..\build\cpp\intermediate\$(ProjectName)\$(Platform)\$(Configuration)\</IntDir>
+    <IgnoreImportLibrary>true</IgnoreImportLibrary>
+    <TargetName>$(ProjectName)</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <OutDir>$(ProjectDir)..\..\build\cpp\$(Platform)\$(Configuration)\</OutDir>
     <IntDir>$(ProjectDir)..\..\build\cpp\intermediate\$(ProjectName)\$(Platform)\$(Configuration)\</IntDir>
+    <IgnoreImportLibrary>true</IgnoreImportLibrary>
+    <TargetName>$(ProjectName)</TargetName>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;_USING_V110_SDK71_;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(ProjectDir)..\..\third_party\cpp\json-cpp\include\json;$(ProjectDir)..\..\third_party\cpp\civetweb</AdditionalIncludeDirectories>
+      <ConformanceMode>false</ConformanceMode>
+      <PreprocessorDefinitions>WIN32;_WINDOWS;_DEBUG;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <ForcedIncludeFiles>stdafx.h</ForcedIncludeFiles>
+      <AdditionalIncludeDirectories>$(ProjectDir)..\..\third_party\cpp\json-cpp\include\json</AdditionalIncludeDirectories>
       <PrecompiledHeader>Use</PrecompiledHeader>
     </ClCompile>
+    <Midl>
+      <MkTypLibCompatible>false</MkTypLibCompatible>
+      <TargetEnvironment>Win32</TargetEnvironment>
+      <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <HeaderFileName>InProcessDriverEngine_i.h</HeaderFileName>
+      <InterfaceIdentifierFileName>
+      </InterfaceIdentifierFileName>
+      <ProxyFileName>
+      </ProxyFileName>
+      <GenerateStublessProxies>true</GenerateStublessProxies>
+      <TypeLibraryName>$(IntDir)InProcessDriverEngine.tlb</TypeLibraryName>
+      <DllDataFileName />
+      <ValidateAllParameters>true</ValidateAllParameters>
+      <OutputDirectory>$(IntDir)</OutputDirectory>
+    </Midl>
+    <ResourceCompile>
+      <Culture>0x0409</Culture>
+      <AdditionalIncludeDirectories>$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ResourceCompile>
     <Link>
-      <AdditionalDependencies>iepmapi.lib;oleacc.lib;pathcch.lib;rpcrt4.lib;version.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <SubSystem>Console</SubSystem>
+      <SubSystem>Windows</SubSystem>
+      <ModuleDefinitionFile>InProcessDriverEngine.def</ModuleDefinitionFile>
+      <AdditionalDependencies>rpcrt4.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -106,15 +134,22 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;_USING_V110_SDK71_;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(ProjectDir)..\..\third_party\cpp\json-cpp\include\json;$(ProjectDir)..\..\third_party\cpp\civetweb</AdditionalIncludeDirectories>
+      <ConformanceMode>false</ConformanceMode>
+      <PreprocessorDefinitions>WIN32;_WINDOWS;_DEBUG;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <ForcedIncludeFiles>stdafx.h</ForcedIncludeFiles>
+      <AdditionalIncludeDirectories>$(ProjectDir)..\..\third_party\cpp\json-cpp\include\json</AdditionalIncludeDirectories>
       <PrecompiledHeader>Use</PrecompiledHeader>
     </ClCompile>
+    <ResourceCompile>
+      <Culture>0x0409</Culture>
+      <AdditionalIncludeDirectories>$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ResourceCompile>
     <Link>
-      <AdditionalDependencies>iepmapi.lib;oleacc.lib;pathcch.lib;rpcrt4.lib;version.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <SubSystem>Console</SubSystem>
+      <SubSystem>Windows</SubSystem>
+      <ModuleDefinitionFile>InProcessDriverEngine.def</ModuleDefinitionFile>
+      <AdditionalDependencies>rpcrt4.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -124,17 +159,24 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;_USING_V110_SDK71_;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(ProjectDir)..\..\third_party\cpp\json-cpp\include\json;$(ProjectDir)..\..\third_party\cpp\civetweb</AdditionalIncludeDirectories>
+      <ConformanceMode>false</ConformanceMode>
+      <PreprocessorDefinitions>WIN32;_WINDOWS;NDEBUG;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <ForcedIncludeFiles>stdafx.h</ForcedIncludeFiles>
+      <AdditionalIncludeDirectories>$(ProjectDir)..\..\third_party\cpp\json-cpp\include\json</AdditionalIncludeDirectories>
       <PrecompiledHeader>Use</PrecompiledHeader>
     </ClCompile>
+    <ResourceCompile>
+      <Culture>0x0409</Culture>
+      <AdditionalIncludeDirectories>$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ResourceCompile>
     <Link>
+      <SubSystem>Windows</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalDependencies>iepmapi.lib;oleacc.lib;pathcch.lib;rpcrt4.lib;version.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <SubSystem>Console</SubSystem>
+      <ModuleDefinitionFile>InProcessDriverEngine.def</ModuleDefinitionFile>
+      <AdditionalDependencies>rpcrt4.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -144,88 +186,58 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;_USING_V110_SDK71_;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(ProjectDir)..\..\third_party\cpp\json-cpp\include\json;$(ProjectDir)..\..\third_party\cpp\civetweb</AdditionalIncludeDirectories>
+      <ConformanceMode>false</ConformanceMode>
+      <PreprocessorDefinitions>WIN32;_WINDOWS;NDEBUG;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <ForcedIncludeFiles>stdafx.h</ForcedIncludeFiles>
+      <AdditionalIncludeDirectories>$(ProjectDir)..\..\third_party\cpp\json-cpp\include\json</AdditionalIncludeDirectories>
       <PrecompiledHeader>Use</PrecompiledHeader>
     </ClCompile>
+    <ResourceCompile>
+      <Culture>0x0409</Culture>
+      <AdditionalIncludeDirectories>$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ResourceCompile>
     <Link>
+      <SubSystem>Windows</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalDependencies>iepmapi.lib;oleacc.lib;pathcch.lib;rpcrt4.lib;version.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <SubSystem>Console</SubSystem>
+      <ModuleDefinitionFile>InProcessDriverEngine.def</ModuleDefinitionFile>
+      <AdditionalDependencies>rpcrt4.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="Alert.cpp" />
-    <ClCompile Include="BrowserFactory.cpp" />
-    <ClCompile Include="BrowserHost.cpp" />
-    <ClCompile Include="cominterfaces.cpp" />
-    <ClCompile Include="CommandHandlers\AcceptAlertCommandHandler.cpp" />
-    <ClCompile Include="CommandHandlers\CloseWindowCommandHandler.cpp" />
-    <ClCompile Include="CommandHandlers\DismissAlertCommandHandler.cpp" />
-    <ClCompile Include="CommandHandlers\GetAlertTextCommandHandler.cpp" />
-    <ClCompile Include="CommandHandlers\GetTimeoutsCommandHandler.cpp" />
-    <ClCompile Include="CommandHandlers\GetWindowHandleCommandHandler.cpp" />
-    <ClCompile Include="CommandHandlers\GetWindowHandlesCommandHandler.cpp" />
-    <ClCompile Include="CommandHandlers\NewSessionCommandHandler.cpp" />
-    <ClCompile Include="CommandHandlers\QuitCommandHandler.cpp" />
-    <ClCompile Include="CommandHandlers\SendAlertTextCommandHandler.cpp" />
-    <ClCompile Include="CommandHandlers\SetTimeoutsCommandHandler.cpp" />
-    <ClCompile Include="CommandHandlers\SwitchToWindowCommandHandler.cpp" />
-    <ClCompile Include="CommandLineArguments.cpp" />
-    <ClCompile Include="InstanceManager.cpp" />
-    <ClCompile Include="SessionCommandHandler.cpp" />
-    <ClCompile Include="IEDriverServer.cpp" />
-    <ClCompile Include="IEServer.cpp" />
-    <ClCompile Include="IESession.cpp" />
-    <ClCompile Include="SessionCommandRepository.cpp" />
-    <ClInclude Include="Alert.h" />
-    <ClInclude Include="BrowserInfo.h" />
-    <ClInclude Include="CommandHandlers\AcceptAlertCommandHandler.h" />
-    <ClInclude Include="CommandHandlers\CloseWindowCommandHandler.h" />
-    <ClInclude Include="CommandHandlers\DismissAlertCommandHandler.h" />
-    <ClInclude Include="CommandHandlers\GetAlertTextCommandHandler.h" />
-    <ClInclude Include="CommandHandlers\GetTimeoutsCommandHandler.h" />
-    <ClInclude Include="CommandHandlers\GetWindowHandleCommandHandler.h" />
-    <ClInclude Include="CommandHandlers\GetWindowHandlesCommandHandler.h" />
-    <ClInclude Include="CommandHandlers\SendAlertTextCommandHandler.h" />
-    <ClInclude Include="CommandHandlers\SetTimeoutsCommandHandler.h" />
-    <ClInclude Include="CommandHandlers\SwitchToWindowCommandHandler.h" />
-    <ClInclude Include="InstanceManager.h" />
-    <ClInclude Include="ProxySettings.h" />
-    <ClInclude Include="SessionCommandRepository.h" />
-    <ClCompile Include="SessionSettings.cpp" />
-    <ClCompile Include="stdafx.cpp">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
-    </ClCompile>
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="BrowserFactory.h" />
-    <ClInclude Include="BrowserHost.h" />
     <ClInclude Include="cominterfaces.h" />
-    <ClInclude Include="CommandHandlers\NewSessionCommandHandler.h" />
-    <ClInclude Include="CommandHandlers\QuitCommandHandler.h" />
-    <ClInclude Include="CommandLineArguments.h" />
-    <ClInclude Include="SessionCommandHandler.h" />
-    <ClInclude Include="IEServer.h" />
-    <ClInclude Include="IESession.h" />
+    <ClInclude Include="CommandHandlers\GetTitleCommandHandler.h" />
+    <ClInclude Include="CommandHandlers\GoToUrlCommandHandler.h" />
+    <ClInclude Include="dllmain.h" />
+    <ClInclude Include="InProcessCommandHandler.h" />
+    <ClInclude Include="InProcessCommandRepository.h" />
+    <ClInclude Include="InProcessDriver.h" />
     <ClInclude Include="resource.h" />
-    <ClInclude Include="SessionSettings.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="targetver.h" />
   </ItemGroup>
   <ItemGroup>
-    <ResourceCompile Include="IEDriverServer.rc">
-      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">_UNICODE;UNICODE;_DEBUG;_USING_V110_SDK71_;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">_UNICODE;UNICODE;_USING_V110_SDK71_;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">_UNICODE;UNICODE;_WIN64;_DEBUG;_USING_V110_SDK71_;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">_UNICODE;UNICODE;_WIN64;_USING_V110_SDK71_;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-    </ResourceCompile>
+    <ClCompile Include="cominterfaces.cpp" />
+    <ClCompile Include="CommandHandlers\GetTitleCommandHandler.cpp" />
+    <ClCompile Include="CommandHandlers\GoToUrlCommandHandler.cpp" />
+    <ClCompile Include="dllmain.cpp" />
+    <ClCompile Include="InProcessCommandHandler.cpp" />
+    <ClCompile Include="InProcessCommandRepository.cpp" />
+    <ClCompile Include="InProcessDriver.cpp" />
+    <ClCompile Include="stdafx.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="InProcessDriverEngine.def" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="InProcessDriverEngine.rc" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\utils\utils.vcxproj">

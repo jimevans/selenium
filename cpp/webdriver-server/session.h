@@ -31,7 +31,9 @@ class Session {
 
   virtual void Initialize(void* init_params) = 0;
   virtual void ShutDown(void) = 0;
-  virtual bool ExecuteCommand(const std::string& serialized_command,
+  virtual bool ExecuteCommand(const std::string& command_name,
+                              const std::string& url_parameters,
+                              const std::string& parameters,
                               std::string* serialized_response) = 0;
 
   //std::string session_id(void) const { return this->session_id_; }
