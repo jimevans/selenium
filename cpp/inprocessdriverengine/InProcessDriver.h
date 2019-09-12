@@ -28,10 +28,9 @@
 
 #define BROWSER_EVENTS_ID   250
 
-using namespace ATL;
-
 namespace webdriver {
   class InProcessCommandRepository;
+  class ElementRepository;
 }
 
 class InProcessDriver : public CComObjectRootEx<CComSingleThreadModel>,
@@ -128,6 +127,10 @@ public:
 
   IWebBrowser2* browser(void) const { return this->browser_; }
 
+  webdriver::ElementRepository* known_element_repository(void) {
+    return this->known_element_repository_;
+  }
+
   void set_is_navigating(const bool is_navigating) {
     this->is_navigating_ = is_navigating;
   }
@@ -142,6 +145,7 @@ private:
   std::string serialized_command_;
   std::string serialized_response_;
   webdriver::InProcessCommandRepository* command_handlers_;
+  webdriver::ElementRepository* known_element_repository_;
 
   CComPtr<IWebBrowser2> browser_;
   CComPtr<IHTMLDocument> script_host_document_;

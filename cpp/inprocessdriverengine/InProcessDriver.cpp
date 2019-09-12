@@ -26,8 +26,10 @@
 #include "../webdriver-server/command.h"
 #include "../webdriver-server/command_handler.h"
 #include "../webdriver-server/command_types.h"
+#include "../webdriver-server/errorcodes.h"
 #include "../webdriver-server/response.h"
 
+#include "ElementRepository.h"
 #include "InProcessCommandHandler.h"
 #include "InProcessCommandRepository.h"
 
@@ -41,10 +43,14 @@ InProcessDriver::InProcessDriver() : settings_window_(NULL),
                                      serialized_command_(""),
                                      serialized_response_("") {
   this->command_handlers_ = new webdriver::InProcessCommandRepository();
+  this->known_element_repository_ = new webdriver::ElementRepository();
   this->Create(HWND_MESSAGE);
 }
 
 InProcessDriver::~InProcessDriver() {
+  this->known_element_repository_->Clear();
+  delete this->known_element_repository_;
+  delete this->command_handlers_;
 }
 
 STDMETHODIMP_(HRESULT) InProcessDriver::SetSite(IUnknown* pUnkSite) {
@@ -58,7 +64,7 @@ STDMETHODIMP_(HRESULT) InProcessDriver::SetSite(IUnknown* pUnkSite) {
                                                      &process_ids);
       COPYDATASTRUCT copy_data;
       copy_data.dwData = COPYDATA_SAME_WINDOW_PROCESS_ID_LIST;
-      copy_data.cbData = process_ids.size() * sizeof(DWORD);
+      copy_data.cbData = static_cast<DWORD>(process_ids.size() * sizeof(DWORD));
       copy_data.lpData = reinterpret_cast<LPVOID>(&process_ids);
       ::SendMessage(this->settings_window_,
                     WM_COPYDATA,
@@ -169,7 +175,7 @@ STDMETHODIMP_(void) InProcessDriver::OnNewWindow(LPDISPATCH ppDisp,
                                                    &process_ids);
     COPYDATASTRUCT copy_data;
     copy_data.dwData = COPYDATA_NEW_WINDOW_PROCESS_ID_LIST;
-    copy_data.cbData = process_ids.size() * sizeof(DWORD);
+    copy_data.cbData = static_cast<DWORD>(process_ids.size() * sizeof(DWORD));
     copy_data.lpData = reinterpret_cast<LPVOID>(&process_ids);
     ::SendMessage(this->settings_window_,
                   WM_COPYDATA,
@@ -239,7 +245,12 @@ LRESULT InProcessDriver::OnExecuteCommand(UINT nMsg,
       this->command_handlers_->GetCommandHandler(command.command_type());
 
   webdriver::Response response;
-  command_handler->Execute(*this, command, &response);
+  if (command_handler == nullptr) {
+    response.SetErrorResponse(ERROR_UNKNOWN_COMMAND,
+                              "No handler for " + command.command_type());
+  } else {
+    command_handler->Execute(*this, command, &response);
+  }
   if (this->is_navigating_) {
     return 0;
   }
