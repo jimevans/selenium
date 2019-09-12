@@ -17,8 +17,6 @@
 #include "dllmain.h"
 #include "resource.h"
 
-using namespace ATL;
-
 CInProcessDriverEngineModule _AtlModule;
 
 // DLL Entry Point

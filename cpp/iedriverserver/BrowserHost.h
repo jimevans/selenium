@@ -27,8 +27,6 @@
 struct IWebBrowser2;
 struct IHTMLDocument2;
 
-using namespace ATL;
-
 namespace webdriver {
 
 class BrowserHost : public CWindowImpl<BrowserHost> {

@@ -27,9 +27,11 @@
 
 #include "targetver.h"
 
-#define _ATL_APARTMENT_THREADED
+#define WIN32_LEAN_AND_MEAN             // Exclude rarely-used stuff from Windows headers
+// Windows Header Files:
+#include <windows.h>
 
-#define _ATL_NO_AUTOMATIC_NAMESPACE
+#define _ATL_APARTMENT_THREADED
 
 // some CString constructors will be explicit
 #define _ATL_CSTRING_EXPLICIT_CONSTRUCTORS
@@ -38,6 +40,7 @@
 
 #include <atlbase.h>
 #include <atlcom.h>
+#include <atlcomcli.h>
 #include <atlctl.h>
 #include <atlwin.h>
 #include <comdef.h>

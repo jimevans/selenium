@@ -16,6 +16,8 @@
 
 #include "GetTitleCommandHandler.h"
 
+#include <MsHTML.h>
+
 #include "../../utils/StringUtilities.h"
 #include "../../webdriver-server/errorcodes.h"
 

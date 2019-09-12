@@ -59,10 +59,10 @@ void GoToUrlCommandHandler::ExecuteInternal(
     CComVariant dummy;
     CComVariant url_variant(url.c_str());
     HRESULT hr = browser->Navigate2(&url_variant,
-      &dummy,
-      &dummy,
-      &dummy,
-      &dummy);
+                                    &dummy,
+                                    &dummy,
+                                    &dummy,
+                                    &dummy);
     if (FAILED(hr)) {
       mutable_executor.set_is_navigating(false);
       _com_error error(hr);
