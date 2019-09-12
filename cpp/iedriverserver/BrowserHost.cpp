@@ -209,7 +209,7 @@ LRESULT BrowserHost::OnExecCommand(UINT uMsg,
 
   COPYDATASTRUCT copy_data;
   copy_data.lpData = reinterpret_cast<void*>(&command_buffer[0]);
-  copy_data.cbData = command_buffer.size();
+  copy_data.cbData = static_cast<DWORD>(command_buffer.size());
   ::SendMessage(this->in_proc_executor_handle_,
                 WM_COPYDATA,
                 NULL,
