@@ -51,6 +51,27 @@
     <ClInclude Include="CommandHandlers\GoToUrlCommandHandler.h">
       <Filter>Header Files\CommandHandlers</Filter>
     </ClInclude>
+    <ClInclude Include="Script.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="CommandHandlers\ExecuteScriptCommandHandler.h">
+      <Filter>Header Files\CommandHandlers</Filter>
+    </ClInclude>
+    <ClInclude Include="Element.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ElementRepository.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="CustomTypes.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ScriptException.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="VariantUtilities.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -76,6 +97,24 @@
     </ClCompile>
     <ClCompile Include="CommandHandlers\GetTitleCommandHandler.cpp">
       <Filter>Source Files\CommandHandlers</Filter>
+    </ClCompile>
+    <ClCompile Include="Script.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="CommandHandlers\ExecuteScriptCommandHandler.cpp">
+      <Filter>Source Files\CommandHandlers</Filter>
+    </ClCompile>
+    <ClCompile Include="Element.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ElementRepository.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ScriptException.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="VariantUtilities.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

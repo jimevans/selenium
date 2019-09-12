@@ -31,4 +31,20 @@ EXTERN_C const CLSID CLSID_InProcessDriver;
 class DECLSPEC_UUID("ff5186d0-7673-4ea6-8113-bc960c030891")
 InProcessDriver;
 
+EXTERN_C const IID IID_IScriptException;
+
+EXTERN_C const CLSID CLSID_ScriptException;
+
+MIDL_INTERFACE("cbdf5555-73f8-472d-ae74-8932d2f53748")
+IScriptException : public IUnknown{
+ public:
+  virtual HRESULT STDMETHODCALLTYPE IsExceptionHandled(bool* is_handled) = 0;
+  virtual HRESULT STDMETHODCALLTYPE GetDescription(BSTR* description) = 0;
+  virtual HRESULT STDMETHODCALLTYPE GetSource(BSTR* source) = 0;
+};
+
+
+class DECLSPEC_UUID("7e2b9663-b2f0-44f0-890d-64fb08efc779")
+  ScriptException;
+
 //#endif // WEBDRIVER_INPROCESSDRIVERENGINE_COMINTERFACES_H_

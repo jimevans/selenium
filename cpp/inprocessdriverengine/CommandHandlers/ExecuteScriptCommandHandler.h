@@ -14,14 +14,24 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "cominterfaces.h"
+#ifndef WEBDRIVER_IE_EXECUTESCRIPTCOMMANDHANDLER_H_
+#define WEBDRIVER_IE_EXECUTESCRIPTCOMMANDHANDLER_H_
 
-EXTERN_C const IID IID_IInProcessDriver = { 0xc4edf20a, 0xfc4d, 0x4f04, { 0xb0, 0x29, 0xc8, 0xd3, 0x38, 0x21, 0x0d, 0x00 } };
+#include "../InProcessCommandHandler.h"
 
-EXTERN_C const IID LIBID_InProcessDriverEngineLib = { 0xd2dd85a7, 0x1c28, 0x4312, { 0x87, 0xbf, 0x17, 0x35, 0x8a, 0xa4, 0xd5, 0x23 } };
+namespace webdriver {
 
-EXTERN_C const CLSID CLSID_InProcessDriver = { 0xff5186d0, 0x7673, 0x4ea6, { 0x81, 0x13, 0xbc, 0x96, 0x0c, 0x03, 0x08, 0x91 } };
+class ExecuteScriptCommandHandler : public InProcessCommandHandler {
+public:
+  ExecuteScriptCommandHandler(void);
+  virtual ~ExecuteScriptCommandHandler(void);
 
-EXTERN_C const IID IID_IScriptException = { 0xcbdf5555, 0x73f8, 0x472d, { 0xae, 0x74, 0x89, 0x32, 0xd2, 0xf5, 0x37, 0x48 } };
+protected:
+  void ExecuteInternal(const InProcessDriver& executor,
+                       const ParametersMap& command_parameters,
+                       Response* response);
+};
 
-EXTERN_C const CLSID CLSID_ScriptException = { 0x7e2b9663, 0xb2f0, 0x44f0, { 0x89, 0x0d, 0x64, 0xfb, 0x08, 0xef, 0xc7, 0x79 } };
+} // namespace webdriver
+
+#endif // WEBDRIVER_IE_EXECUTESCRIPTCOMMANDHANDLER_H_
