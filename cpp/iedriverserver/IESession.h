@@ -17,6 +17,7 @@
 #ifndef WEBDRIVER_IE_IESESSION_H_
 #define WEBDRIVER_IE_IESESSION_H_
 
+#include <ctime>
 #include <map>
 #include <string>
 #include <vector>
@@ -86,6 +87,8 @@ class IESession : public Session {
 private:
   void InitializeLocalCommandNames(void);
   bool IsLocalCommand(const std::string& command_name);
+  bool IsNavigationCommand(const std::string& command_name);
+  bool IsScriptCommand(const std::string& command_name);
   bool DispatchInProcessCommand(const std::string& serialized_command,
                                 std::string* serialized_response);
   void PrepareInProcessCommand(HWND host_window_handle,
@@ -95,15 +98,19 @@ private:
                                        HWND* alert_handle);
   void GetInProcessCommandResult(HWND host_window_handle,
                                  std::string* serialized_response);
+  int GetCommandTimeout(const int timeout_type);
 
   int port_;
   int browser_attach_timeout_;
   bool is_valid_;
+  clock_t command_timeout_;
   std::string session_id_;
   std::string current_instance_id_;
   BrowserFactory* factory_;
   SessionCommandRepository* command_handlers_;
   std::vector<std::string> local_command_names_;
+  std::vector<std::string> navigation_command_names_;
+  std::vector<std::string> script_command_names_;
 
   HWND instance_manager_window_handle_;
   HWND session_settings_window_handle_;

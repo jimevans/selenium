@@ -16,8 +16,6 @@
 
 #include "IESession.h"
 
-#include <ctime>
-
 #include <PathCch.h>
 
 #include "../utils/messages.h"
@@ -55,6 +53,7 @@ void IESession::Initialize(void* init_params) {
   std::string session_id = StringUtilities::CreateGuid();
   this->session_id_ = session_id;
   this->is_valid_ = true;
+  this->command_timeout_ = 0;
 
   this->current_instance_id_ = "";
 
@@ -84,7 +83,26 @@ bool IESession::ExecuteCommand(const std::string& command_name,
   serialized_command.append(" }");
 
   if (!this->IsLocalCommand(command_name)) {
+    if (this->IsNavigationCommand(command_name)) {
+      int page_load_timeout = this->GetCommandTimeout(
+          SESSION_SETTING_PAGE_LOAD_TIMEOUT);
+      if (page_load_timeout >= 0) {
+        this->command_timeout_ =
+            clock() + (page_load_timeout / 1000 * CLOCKS_PER_SEC);
+      }
+    }
+
+    if (this->IsScriptCommand(command_name)) {
+      int script_timeout = this->GetCommandTimeout(
+          SESSION_SETTING_SCRIPT_TIMEOUT);
+      if (script_timeout >= 0) {
+        this->command_timeout_ =
+            clock() + (script_timeout / 1000 * CLOCKS_PER_SEC);
+      }
+    }
+
     this->DispatchInProcessCommand(serialized_command, serialized_response);
+    this->command_timeout_ = 0;
     return true;
   }
 
@@ -308,10 +326,18 @@ bool IESession::DispatchInProcessCommand(const std::string& serialized_command,
   }
   this->PrepareInProcessCommand(host_window_handle, serialized_command);
   ::PostMessage(host_window_handle, WD_EXEC_COMMAND, NULL, NULL);
-  this->WaitForInProcessCommandComplete(host_window_handle,
-                                        content_window_handle,
-                                        &alert_handle);
-  this->GetInProcessCommandResult(host_window_handle, serialized_response);
+  bool is_command_complete =
+      this->WaitForInProcessCommandComplete(host_window_handle,
+                                            content_window_handle,
+                                            &alert_handle);
+  if (is_command_complete) {
+    this->GetInProcessCommandResult(host_window_handle, serialized_response);
+  } else {
+    Response timeout_response;
+    timeout_response.SetErrorResponse(ETIMEOUT, "Timed out executing command");
+    *serialized_response = timeout_response.Serialize();
+    return false;
+  }
   return true;
 }
 
@@ -333,7 +359,9 @@ bool IESession::WaitForInProcessCommandComplete(HWND host_window_handle,
                                         NULL,
                                         NULL));
   int counter = 0;
-  while (response_length == 0) {
+  bool is_timed_out = this->command_timeout_ > 0 &&
+                      this->command_timeout_ < clock();
+  while (response_length == 0 && !is_timed_out) {
     ::Sleep(10);
     response_length = static_cast<size_t>(::SendMessage(host_window_handle,
                                                         WD_GET_RESPONSE_LENGTH,
@@ -348,8 +376,14 @@ bool IESession::WaitForInProcessCommandComplete(HWND host_window_handle,
       }
     }
     counter++;
+    is_timed_out = this->command_timeout_ > 0 &&
+                   this->command_timeout_ < clock();
   }
 
+  if (is_timed_out) {
+    ::SendMessage(host_window_handle, WD_ABORT_COMMAND, NULL, NULL);
+    return false;
+  }
   return true;
 }
 
@@ -369,15 +403,37 @@ void IESession::GetInProcessCommandResult(HWND host_window_handle,
   *serialized_response = response;
 }
 
+int IESession::GetCommandTimeout(const int timeout_type) {
+  int timeout = 0;
+  ::SendMessage(this->session_settings_window_handle_,
+                WD_GET_SESSION_SETTING,
+                static_cast<WPARAM>(timeout_type),
+                reinterpret_cast<LPARAM>(&timeout));
+  return timeout;
+}
+
 bool IESession::IsLocalCommand(const std::string& command_name) {
-  std::vector<std::string>::const_iterator finder =
-      this->local_command_names_.begin();
-  for (; finder != this->local_command_names_.end(); ++finder) {
-    if (*finder == command_name) {
-      return true;
-    }
-  }
-  return false;
+  std::vector<std::string>::iterator it =
+      std::find(this->local_command_names_.begin(),
+                this->local_command_names_.end(),
+                command_name);
+  return it != this->local_command_names_.end();
+}
+
+bool IESession::IsNavigationCommand(const std::string& command_name) {
+  std::vector<std::string>::iterator it =
+      std::find(this->navigation_command_names_.begin(),
+                this->navigation_command_names_.end(),
+                command_name);
+  return it != this->navigation_command_names_.end();
+}
+
+bool IESession::IsScriptCommand(const std::string& command_name) {
+  std::vector<std::string>::iterator it =
+      std::find(this->script_command_names_.begin(),
+                this->script_command_names_.end(),
+                command_name);
+  return it != this->script_command_names_.end();
 }
 
 void IESession::InitializeLocalCommandNames() {
@@ -395,6 +451,14 @@ void IESession::InitializeLocalCommandNames() {
   this->local_command_names_.push_back(CommandType::SetTimeouts);
   this->local_command_names_.push_back(CommandType::Screenshot);
   this->local_command_names_.push_back(CommandType::ElementScreenshot);
+
+  this->navigation_command_names_.push_back(CommandType::Get);
+  this->navigation_command_names_.push_back(CommandType::GoBack);
+  this->navigation_command_names_.push_back(CommandType::GoForward);
+  this->navigation_command_names_.push_back(CommandType::Refresh);
+
+  this->script_command_names_.push_back(CommandType::ExecuteScript);
+  this->script_command_names_.push_back(CommandType::ExecuteAsyncScript);
 }
 
 } // namespace webdriver
