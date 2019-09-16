@@ -72,6 +72,9 @@
     <ClInclude Include="VariantUtilities.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="ElementFinder.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">

@@ -125,6 +125,8 @@ public:
 
   static unsigned int WINAPI WaitThreadProc(LPVOID lpParameter);
 
+  int GetFocusedDocument(IHTMLDocument2** document) const;
+
   IWebBrowser2* browser(void) const { return this->browser_; }
 
   webdriver::ElementRepository* known_element_repository(void) {
@@ -141,6 +143,7 @@ private:
 
   HWND notify_window_;
   HWND settings_window_;
+  int command_id_;
   bool is_navigating_;
   std::string serialized_command_;
   std::string serialized_response_;
@@ -148,6 +151,7 @@ private:
   webdriver::ElementRepository* known_element_repository_;
 
   CComPtr<IWebBrowser2> browser_;
+  CComPtr<IHTMLWindow2> focused_frame_;
   CComPtr<IHTMLDocument> script_host_document_;
   CComPtr<IDiagnosticsScriptEngine> script_engine_;
 };

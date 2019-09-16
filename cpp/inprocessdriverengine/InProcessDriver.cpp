@@ -39,9 +39,11 @@ struct WaitThreadContext {
 
 InProcessDriver::InProcessDriver() : settings_window_(NULL),
                                      notify_window_(NULL),
+                                     command_id_(0),
                                      is_navigating_(false),
                                      serialized_command_(""),
-                                     serialized_response_("") {
+                                     serialized_response_(""),
+                                     focused_frame_(nullptr) {
   this->command_handlers_ = new webdriver::InProcessCommandRepository();
   this->known_element_repository_ = new webdriver::ElementRepository();
   this->Create(HWND_MESSAGE);
@@ -203,6 +205,7 @@ LRESULT InProcessDriver::OnCopyData(UINT nMsg,
   buffer[buffer.size() - 1] = '\0';
   std::string received_data(&buffer[0]);
 
+  ++this->command_id_;
   this->serialized_command_ = received_data;
   return 0;
 }
@@ -244,6 +247,7 @@ LRESULT InProcessDriver::OnExecuteCommand(UINT nMsg,
   webdriver::CommandHandlerHandle command_handler =
       this->command_handlers_->GetCommandHandler(command.command_type());
 
+  int executing_command_id = this->command_id_;
   webdriver::Response response;
   if (command_handler == nullptr) {
     response.SetErrorResponse(ERROR_UNKNOWN_COMMAND,
@@ -254,7 +258,19 @@ LRESULT InProcessDriver::OnExecuteCommand(UINT nMsg,
   if (this->is_navigating_) {
     return 0;
   }
-  this->serialized_response_ = response.Serialize();
+
+  // There is a chance that a command execution will block (e.g., via
+  // an alert). In this case, it's possible that the current command
+  // might return after the alert is handled by the out-of-process
+  // component, and after the next command has been submitted here
+  // in-process. When we find ourselves in this situation, we need to
+  // not return the response for the abandoned command.
+  // CONSIDER: We could probably make this more robust by assigning
+  // an ID to each command and keeping track of all in-process commands.
+  // This is a potential future enhancement, if it's found necessary.
+  if (executing_command_id == this->command_id_) {
+    this->serialized_response_ = response.Serialize();
+  }
   return 0;
 }
 
@@ -301,6 +317,21 @@ LRESULT InProcessDriver::OnWait(UINT nMsg,
     this->CreateWaitThread();
   }
   return 0;
+}
+
+int InProcessDriver::GetFocusedDocument(IHTMLDocument2** document) const {
+  if (this->focused_frame_ == nullptr) {
+    CComPtr<IDispatch> dispatch;
+    HRESULT hr = this->browser_->get_Document(&dispatch);
+    if (FAILED(hr)) {
+    }
+
+    hr = dispatch->QueryInterface(document);
+    if (FAILED(hr)) {
+    }
+  }
+
+  return WD_SUCCESS;
 }
 
 bool InProcessDriver::IsDocumentReady() {

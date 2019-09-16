@@ -68,15 +68,13 @@ void ExecuteScriptCommandHandler::ExecuteInternal(
   const std::string script_source = script_body;
 
   Json::Value json_args(args_parameter_iterator->second);
-  
-  CComPtr<IDispatch> dispatch;
-  HRESULT hr = executor.browser()->get_Document(&dispatch);
-  if (FAILED(hr)) {
-  }
 
   CComPtr<IHTMLDocument2> doc;
-  hr = dispatch->QueryInterface(&doc);
-  if (FAILED(hr)) {
+  int status_code = executor.GetFocusedDocument(&doc);
+  if (status_code != WD_SUCCESS) {
+    response->SetErrorResponse(status_code,
+                               "Unexpected error retrieving focused document");
+    return;
   }
 
   InProcessDriver& mutable_executor = const_cast<InProcessDriver&>(executor);
@@ -85,7 +83,7 @@ void ExecuteScriptCommandHandler::ExecuteInternal(
                         doc,
                         mutable_executor.known_element_repository());
 
-  int status_code = script_wrapper.Execute(json_args);
+  status_code = script_wrapper.Execute(json_args);
 
   if (status_code != WD_SUCCESS) {
     response->SetErrorResponse(status_code, "JavaScript error");
