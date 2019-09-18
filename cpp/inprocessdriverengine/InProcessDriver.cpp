@@ -29,9 +29,14 @@
 #include "../webdriver-server/errorcodes.h"
 #include "../webdriver-server/response.h"
 
+#include "ElementFinder.h"
 #include "ElementRepository.h"
 #include "InProcessCommandHandler.h"
 #include "InProcessCommandRepository.h"
+
+#define INTERACTIVE_READY_STATE L"interactive"
+#define COMPLETE_READY_STATE L"complete"
+#define IE_PROCESS_NAME L"iexplore.exe"
 
 struct WaitThreadContext {
   HWND window_handle;
@@ -46,6 +51,7 @@ InProcessDriver::InProcessDriver() : settings_window_(NULL),
                                      focused_frame_(nullptr) {
   this->command_handlers_ = new webdriver::InProcessCommandRepository();
   this->known_element_repository_ = new webdriver::ElementRepository();
+  this->element_finder_ = new webdriver::ElementFinder();
   this->Create(HWND_MESSAGE);
 }
 
@@ -61,17 +67,7 @@ STDMETHODIMP_(HRESULT) InProcessDriver::SetSite(IUnknown* pUnkSite) {
     this->DispEventUnadvise(this->browser_);
     this->DestroyWindow();
     if (this->notify_window_ != NULL) {
-      std::vector<DWORD> process_ids;
-      webdriver::WindowUtilities::GetProcessesByName(L"iexplore.exe",
-                                                     &process_ids);
-      COPYDATASTRUCT copy_data;
-      copy_data.dwData = COPYDATA_SAME_WINDOW_PROCESS_ID_LIST;
-      copy_data.cbData = static_cast<DWORD>(process_ids.size() * sizeof(DWORD));
-      copy_data.lpData = reinterpret_cast<LPVOID>(&process_ids);
-      ::SendMessage(this->settings_window_,
-                    WM_COPYDATA,
-                    NULL,
-                    NULL);
+      this->SendProcessIdList(COPYDATA_SAME_WINDOW_PROCESS_ID_LIST);
     }
     ::PostQuitMessage(0);
     return hr;
@@ -172,17 +168,7 @@ STDMETHODIMP_(void) InProcessDriver::OnNewWindow(LPDISPATCH ppDisp,
                                                  BSTR bstrUrl) {
 
   if (this->notify_window_ != NULL) {
-    std::vector<DWORD> process_ids;
-    webdriver::WindowUtilities::GetProcessesByName(L"iexplore.exe",
-                                                   &process_ids);
-    COPYDATASTRUCT copy_data;
-    copy_data.dwData = COPYDATA_NEW_WINDOW_PROCESS_ID_LIST;
-    copy_data.cbData = static_cast<DWORD>(process_ids.size() * sizeof(DWORD));
-    copy_data.lpData = reinterpret_cast<LPVOID>(&process_ids);
-    ::SendMessage(this->settings_window_,
-                  WM_COPYDATA,
-                  NULL,
-                  NULL);
+    this->SendProcessIdList(COPYDATA_NEW_WINDOW_PROCESS_ID_LIST);
   }
 }
 
@@ -298,7 +284,7 @@ LRESULT InProcessDriver::OnGetResponse(UINT nMsg,
   copy_data.cbData = static_cast<DWORD>(response_buffer.size());
   ::SendMessage(return_window,
                 WM_COPYDATA,
-                NULL,
+                reinterpret_cast<WPARAM>(this->m_hWnd),
                 reinterpret_cast<LPARAM>(&copy_data));
   this->serialized_command_ = "";
   this->serialized_response_ = "";
@@ -320,18 +306,59 @@ LRESULT InProcessDriver::OnWait(UINT nMsg,
 }
 
 int InProcessDriver::GetFocusedDocument(IHTMLDocument2** document) const {
+  HRESULT hr = S_OK;
+  CComPtr<IHTMLWindow2> window;
   if (this->focused_frame_ == nullptr) {
+    // N.B. IWebBrowser2::get_Document and IHTMLWindow2::get_document
+    // return two very different objects. We want the latter in all
+    // cases.
     CComPtr<IDispatch> dispatch;
-    HRESULT hr = this->browser_->get_Document(&dispatch);
+    hr = this->browser_->get_Document(&dispatch);
     if (FAILED(hr)) {
+      // TODO: log the error and return error code
     }
 
-    hr = dispatch->QueryInterface(document);
+    CComPtr<IHTMLDocument2> dispatch_document;
+    hr = dispatch->QueryInterface(&dispatch_document);
     if (FAILED(hr)) {
+      // TODO: log the error and return error code
     }
+
+    hr = dispatch_document->get_parentWindow(&window);
+    if (FAILED(hr)) {
+      // TODO: log the error
+    }
+  } else {
+    window = this->focused_frame_;
   }
 
+  if (window) {
+    hr = window->get_document(document);
+    if (FAILED(hr)) {
+      // TODO: log the error and return error code
+    }
+  } else {
+    // TODO: log the error and return error code
+  }
   return WD_SUCCESS;
+}
+
+void InProcessDriver::SendProcessIdList(unsigned long notify_type) {
+  if (this->notify_window_ == NULL) {
+    // TODO: log the error
+    return;
+  }
+  std::vector<DWORD> process_ids;
+  webdriver::WindowUtilities::GetProcessesByName(IE_PROCESS_NAME,
+                                                  &process_ids);
+  COPYDATASTRUCT copy_data;
+  copy_data.dwData = notify_type;
+  copy_data.cbData = static_cast<DWORD>(process_ids.size() * sizeof(DWORD));
+  copy_data.lpData = reinterpret_cast<LPVOID>(&process_ids);
+  ::SendMessage(this->notify_window_,
+                WM_COPYDATA,
+                reinterpret_cast<WPARAM>(this->m_hWnd),
+                reinterpret_cast<LPARAM>(&copy_data));
 }
 
 bool InProcessDriver::IsDocumentReady() {
@@ -367,10 +394,10 @@ bool InProcessDriver::IsDocumentReady() {
   }
 
   if (page_load_strategy == EAGER_PAGE_LOAD_STRATEGY) {
-    return ready_state_bstr == L"interactive";
+    return ready_state_bstr == INTERACTIVE_READY_STATE;
   }
 
-  return ready_state_bstr == L"complete";
+  return ready_state_bstr == COMPLETE_READY_STATE;
 }
 
 void InProcessDriver::CreateWaitThread() {

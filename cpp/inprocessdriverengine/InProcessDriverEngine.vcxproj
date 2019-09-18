@@ -209,6 +209,7 @@
   <ItemGroup>
     <ClInclude Include="cominterfaces.h" />
     <ClInclude Include="CommandHandlers\ExecuteScriptCommandHandler.h" />
+    <ClInclude Include="CommandHandlers\FindElementCommandHandler.h" />
     <ClInclude Include="CommandHandlers\GetTitleCommandHandler.h" />
     <ClInclude Include="CommandHandlers\GoToUrlCommandHandler.h" />
     <ClInclude Include="CustomTypes.h" />
@@ -216,6 +217,7 @@
     <ClInclude Include="Element.h" />
     <ClInclude Include="ElementFinder.h" />
     <ClInclude Include="ElementRepository.h" />
+    <ClInclude Include="Generated\atoms.h" />
     <ClInclude Include="InProcessCommandHandler.h" />
     <ClInclude Include="InProcessCommandRepository.h" />
     <ClInclude Include="InProcessDriver.h" />
@@ -229,10 +231,12 @@
   <ItemGroup>
     <ClCompile Include="cominterfaces.cpp" />
     <ClCompile Include="CommandHandlers\ExecuteScriptCommandHandler.cpp" />
+    <ClCompile Include="CommandHandlers\FindElementCommandHandler.cpp" />
     <ClCompile Include="CommandHandlers\GetTitleCommandHandler.cpp" />
     <ClCompile Include="CommandHandlers\GoToUrlCommandHandler.cpp" />
     <ClCompile Include="dllmain.cpp" />
     <ClCompile Include="Element.cpp" />
+    <ClCompile Include="ElementFinder.cpp" />
     <ClCompile Include="ElementRepository.cpp" />
     <ClCompile Include="InProcessCommandHandler.cpp" />
     <ClCompile Include="InProcessCommandRepository.cpp" />

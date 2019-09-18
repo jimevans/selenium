@@ -51,20 +51,20 @@ LRESULT SessionSettings::OnGetSessionSetting(UINT uMsg,
   int setting = static_cast<int>(wParam);
   switch (setting) {
     case SESSION_SETTING_IMPLICIT_WAIT_TIMEOUT: {
-      unsigned long long* timeout =
-          reinterpret_cast<unsigned long long*>(lParam);
+      long long* timeout =
+          reinterpret_cast<long long*>(lParam);
       *timeout = this->implicit_wait_timeout_;
       break;
     }
     case SESSION_SETTING_PAGE_LOAD_TIMEOUT: {
-      unsigned long long* timeout =
-          reinterpret_cast<unsigned long long*>(lParam);
+      long long* timeout =
+          reinterpret_cast<long long*>(lParam);
       *timeout = this->page_load_timeout_;
       break;
     }
     case SESSION_SETTING_SCRIPT_TIMEOUT: {
-      unsigned long long* timeout =
-          reinterpret_cast<unsigned long long*>(lParam);
+      long long* timeout =
+          reinterpret_cast<long long*>(lParam);
       *timeout = this->script_timeout_;
       break;
     }
@@ -106,20 +106,20 @@ LRESULT SessionSettings::OnSetSessionSetting(UINT uMsg,
   int setting = static_cast<int>(wParam);
   switch (setting) {
     case SESSION_SETTING_IMPLICIT_WAIT_TIMEOUT: {
-      unsigned long long* timeout =
-          reinterpret_cast<unsigned long long*>(lParam);
+      long long* timeout =
+          reinterpret_cast<long long*>(lParam);
       this->implicit_wait_timeout_ = *timeout;
       break;
     }
     case SESSION_SETTING_PAGE_LOAD_TIMEOUT: {
-      unsigned long long* timeout =
-          reinterpret_cast<unsigned long long*>(lParam);
+      long long* timeout =
+          reinterpret_cast<long long*>(lParam);
       this->page_load_timeout_ = *timeout;
       break;
     }
     case SESSION_SETTING_SCRIPT_TIMEOUT: {
-      unsigned long long* timeout =
-          reinterpret_cast<unsigned long long*>(lParam);
+      long long* timeout =
+          reinterpret_cast<long long*>(lParam);
       this->script_timeout_ = *timeout;
       break;
     }

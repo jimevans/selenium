@@ -19,6 +19,9 @@
     <Filter Include="Source Files\CommandHandlers">
       <UniqueIdentifier>{5a332ccd-87c4-403c-9228-03c7f5ca1de7}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\Generated">
+      <UniqueIdentifier>{524b1b39-0b59-4904-a8b4-bd66b3babbc4}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h">
@@ -75,6 +78,12 @@
     <ClInclude Include="ElementFinder.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Generated\atoms.h">
+      <Filter>Header Files\Generated</Filter>
+    </ClInclude>
+    <ClInclude Include="CommandHandlers\FindElementCommandHandler.h">
+      <Filter>Header Files\CommandHandlers</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -118,6 +127,12 @@
     </ClCompile>
     <ClCompile Include="VariantUtilities.cpp">
       <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ElementFinder.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="CommandHandlers\FindElementCommandHandler.cpp">
+      <Filter>Source Files\CommandHandlers</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

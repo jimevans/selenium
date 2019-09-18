@@ -48,7 +48,7 @@ public:
   unsigned long long implicit_wait_timeout(void) const {
     return this->implicit_wait_timeout_;
   }
-  void set_implicit_wait_timeout(const unsigned long long timeout) {
+  void set_implicit_wait_timeout(const long long timeout) {
     this->implicit_wait_timeout_ = timeout;
   }
 
@@ -62,7 +62,7 @@ public:
   unsigned long long page_load_timeout(void) const {
     return this->page_load_timeout_;
   }
-  void set_page_load_timeout(const unsigned long long timeout) {
+  void set_page_load_timeout(const long long timeout) {
     this->page_load_timeout_ = timeout;
   }
 
@@ -95,9 +95,9 @@ public:
 private:
   int browser_attach_timeout_;
   bool use_strict_file_interactability_;
-  unsigned long long implicit_wait_timeout_;
-  unsigned long long script_timeout_;
-  unsigned long long page_load_timeout_;
+  long long implicit_wait_timeout_;
+  long long script_timeout_;
+  long long page_load_timeout_;
   std::string unhandled_prompt_behavior_;
   std::string page_load_strategy_;
   ProxySettings proxy_settings_;

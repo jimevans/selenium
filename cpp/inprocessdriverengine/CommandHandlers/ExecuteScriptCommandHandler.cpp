@@ -37,35 +37,37 @@ void ExecuteScriptCommandHandler::ExecuteInternal(
     const ParametersMap& command_parameters,
     Response* response) {
   ParametersMap::const_iterator script_parameter_iterator =
-      command_parameters.find("script");
+    command_parameters.find("script");
   ParametersMap::const_iterator args_parameter_iterator =
-      command_parameters.find("args");
+    command_parameters.find("args");
   if (script_parameter_iterator == command_parameters.end()) {
     response->SetErrorResponse(ERROR_INVALID_ARGUMENT,
-                               "Missing parameter: script");
+      "Missing parameter: script");
     return;
   }
 
   if (!script_parameter_iterator->second.isString()) {
     response->SetErrorResponse(ERROR_INVALID_ARGUMENT,
-                               "script parameter must be a string");
+      "script parameter must be a string");
     return;
   }
 
   if (args_parameter_iterator == command_parameters.end()) {
     response->SetErrorResponse(ERROR_INVALID_ARGUMENT,
-                               "Missing parameter: args");
+      "Missing parameter: args");
     return;
   }
 
   if (!args_parameter_iterator->second.isArray()) {
     response->SetErrorResponse(ERROR_INVALID_ARGUMENT,
-                               "args parameter must be an array");
+      "args parameter must be an array");
     return;
   }
 
   std::string script_body = script_parameter_iterator->second.asString();
-  const std::string script_source = script_body;
+  std::string script_source = "return function() {\n";
+  script_source.append(script_body);
+  script_source.append("\n}");
 
   Json::Value json_args(args_parameter_iterator->second);
 

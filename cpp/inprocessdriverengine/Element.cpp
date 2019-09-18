@@ -37,7 +37,9 @@ Json::Value Element::ConvertToJson() const {
 
 bool Element::IsContainingDocument(IHTMLDocument2* document) {
   CComPtr<IDispatch> parent_doc_dispatch;
-  this->element_->get_document(&parent_doc_dispatch);
+  HRESULT hr = this->element_->get_document(&parent_doc_dispatch);
+  if (FAILED(hr)) {
+  }
 
   if (parent_doc_dispatch.IsEqualObject(document)) {
     return true;

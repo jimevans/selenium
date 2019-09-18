@@ -121,6 +121,9 @@ bool VariantUtilities::VariantIsObject(const VARIANT& value) {
   if (value.vt != VT_DISPATCH) {
     return false;
   }
+  if (VariantIsElement(value)) {
+    return false;
+  }
   std::wstring type_name = GetVariantObjectTypeName(value);
   if (type_name == L"JScriptTypeInfo") {
     return true;
@@ -148,21 +151,21 @@ bool VariantUtilities::HasSelfReferences(const VARIANT& current_object,
       long length = 0;
       status_code = GetArrayLength(current_object.pdispVal, &length);
       for (long index = 0; index < length; ++index) {
-        std::wstring index_string = std::to_wstring(static_cast<long long>(index));
+        std::wstring index_string =
+            std::to_wstring(static_cast<long long>(index));
         property_names.push_back(index_string);
       }
-    }
-    else {
+    } else {
       status_code = GetPropertyNameList(current_object.pdispVal,
-        &property_names);
+                                        &property_names);
     }
 
     visited->push_back(current_object.pdispVal);
     for (size_t i = 0; i < property_names.size(); ++i) {
       CComVariant property_value;
       GetVariantObjectPropertyValue(current_object.pdispVal,
-        property_names[i],
-        &property_value);
+                                    property_names[i],
+                                    &property_value);
       if (VariantIsIDispatch(property_value)) {
         for (size_t i = 0; i < visited->size(); ++i) {
           CComPtr<IDispatch> visited_dispatch((*visited)[i]);
@@ -170,7 +173,8 @@ bool VariantUtilities::HasSelfReferences(const VARIANT& current_object,
             return true;
           }
         }
-        has_self_references = has_self_references || HasSelfReferences(property_value, visited);
+        has_self_references = has_self_references ||
+                              HasSelfReferences(property_value, visited);
         if (has_self_references) {
           break;
         }
@@ -308,9 +312,11 @@ int VariantUtilities::ConvertVariantToJsonValue(
         return EUNEXPECTEDJSERROR;
       }
       ElementHandle element_wrapper;
-      bool element_added = element_manager->AddManagedElement(node, &element_wrapper);
+      bool element_added =
+          element_manager->AddManagedElement(node, &element_wrapper);
       Json::Value element_value(Json::objectValue);
-      element_value[JSON_ELEMENT_PROPERTY_NAME] = element_wrapper->element_id();
+      element_value[JSON_ELEMENT_PROPERTY_NAME] =
+          element_wrapper->element_id();
       *value = element_value;
     }
   } else {

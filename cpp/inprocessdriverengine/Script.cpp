@@ -99,9 +99,6 @@ int Script::CreateAnonymousFunction(CComVariant* function_object) {
     return EUNEXPECTEDJSERROR;
   }
 
-  //std::wstring item_type = L"Function";
-  //CComBSTR name(item_type.c_str());
-
   CComVariant script_source_variant(this->source_code_.c_str());
 
   std::vector<CComVariant> argument_array;
@@ -112,7 +109,7 @@ int Script::CreateAnonymousFunction(CComVariant* function_object) {
   ctor_parameters.cArgs = static_cast<unsigned int>(argument_array.size());
   ctor_parameters.rgvarg = &argument_array[0];
 
-  // Find the javascript Function object using the IDispatchEx of the
+  // Find the JavaScript Function object using the IDispatchEx of the
   // script engine
   DISPID dispatch_id;
   hr = script_engine->GetDispID(CComBSTR(JAVASCRIPT_FUNCTION),
@@ -123,19 +120,23 @@ int Script::CreateAnonymousFunction(CComVariant* function_object) {
     return EUNEXPECTEDJSERROR;
   }
 
-  // Create the jscript function by calling its constructor
+  CComVariant function_creator;
+  // Create the JavaScript function creator function by calling
+  // its constructor.
   hr = script_engine->InvokeEx(dispatch_id,
                                LOCALE_USER_DEFAULT,
                                DISPATCH_CONSTRUCT,
                                &ctor_parameters,
-                               function_object,
+                               &function_creator,
                                nullptr,
                                nullptr);
-  if (FAILED(hr)) {
-    // LogError("Failed to call InvokeEx on Object constructor", hr);
-    return EUNEXPECTEDJSERROR;
-  }
 
+  // We now have a function that returns a function. Execute it
+  // to return the function to execute the user's JavaScript code.
+  std::vector<CComVariant> empty_args;
+  hr = this->InvokeAnonymousFunction(function_creator,
+                                     empty_args,
+                                     function_object);
   return WD_SUCCESS;
 }
 

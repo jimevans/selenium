@@ -31,6 +31,7 @@
 namespace webdriver {
   class InProcessCommandRepository;
   class ElementRepository;
+  class ElementFinder;
 }
 
 class InProcessDriver : public CComObjectRootEx<CComSingleThreadModel>,
@@ -127,10 +128,16 @@ public:
 
   int GetFocusedDocument(IHTMLDocument2** document) const;
 
+  HWND settings_window_handle(void) const { return this->settings_window_; }
+
   IWebBrowser2* browser(void) const { return this->browser_; }
 
   webdriver::ElementRepository* known_element_repository(void) {
     return this->known_element_repository_;
+  }
+
+  webdriver::ElementFinder* element_finder(void) const {
+    return this->element_finder_;
   }
 
   void set_is_navigating(const bool is_navigating) {
@@ -140,6 +147,7 @@ public:
 private:
   void CreateWaitThread(void);
   bool IsDocumentReady(void);
+  void SendProcessIdList(unsigned long notify_type);
 
   HWND notify_window_;
   HWND settings_window_;
@@ -149,6 +157,7 @@ private:
   std::string serialized_response_;
   webdriver::InProcessCommandRepository* command_handlers_;
   webdriver::ElementRepository* known_element_repository_;
+  webdriver::ElementFinder* element_finder_;
 
   CComPtr<IWebBrowser2> browser_;
   CComPtr<IHTMLWindow2> focused_frame_;

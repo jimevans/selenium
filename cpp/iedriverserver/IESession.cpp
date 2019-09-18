@@ -404,12 +404,13 @@ void IESession::GetInProcessCommandResult(HWND host_window_handle,
 }
 
 int IESession::GetCommandTimeout(const int timeout_type) {
-  int timeout = 0;
+  int type = timeout_type;
+  long long timeout = 0LL;
   ::SendMessage(this->session_settings_window_handle_,
                 WD_GET_SESSION_SETTING,
-                static_cast<WPARAM>(timeout_type),
+                static_cast<WPARAM>(type),
                 reinterpret_cast<LPARAM>(&timeout));
-  return timeout;
+  return static_cast<int>(timeout);
 }
 
 bool IESession::IsLocalCommand(const std::string& command_name) {
