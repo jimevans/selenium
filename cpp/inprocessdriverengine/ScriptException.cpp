@@ -28,9 +28,9 @@ ScriptException::~ScriptException() {
 }
 
 STDMETHODIMP ScriptException::QueryService(REFGUID guid_service,
-  REFIID riid,
-  void** object_pointer) {
-  return S_OK;
+                                           REFIID riid,
+                                           void** object_pointer) {
+  return E_NOINTERFACE;
 }
 
 STDMETHODIMP ScriptException::CanHandleException(EXCEPINFO* exception_info_pointer,
