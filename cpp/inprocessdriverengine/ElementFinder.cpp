@@ -85,8 +85,7 @@ int ElementFinder::FindElementUsingJavaScriptAtom(
   }
 
   Script find_element_script(script_source,
-                             settings.host_document,
-                             known_element_repository);
+                             settings.host_document);
   CComVariant mechanism(settings.mechanism.c_str());
   CComVariant criteria(settings.criteria.c_str());
   std::vector<CComVariant> args;

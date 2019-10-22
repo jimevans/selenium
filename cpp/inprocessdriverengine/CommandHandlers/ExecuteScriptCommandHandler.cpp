@@ -81,11 +81,11 @@ void ExecuteScriptCommandHandler::ExecuteInternal(
 
   InProcessDriver& mutable_executor = const_cast<InProcessDriver&>(executor);
 
-  Script script_wrapper(script_source,
-                        doc,
-                        mutable_executor.known_element_repository());
+  Script script_wrapper(script_source, doc);
 
-  status_code = script_wrapper.Execute(json_args);
+  status_code = script_wrapper.Execute(
+      json_args,
+      mutable_executor.known_element_repository());
 
   if (status_code != WD_SUCCESS) {
     response->SetErrorResponse(status_code, "JavaScript error");

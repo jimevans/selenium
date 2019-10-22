@@ -36,11 +36,9 @@ class ElementRepository;
 class Script {
 public:
   Script(const std::string& script_source,
-         IHTMLDocument2* document,
-         ElementRepository* element_resolver);
+         IHTMLDocument2* document);
   Script(const std::wstring& script_source,
-         IHTMLDocument2* document,
-         ElementRepository* element_resolver);
+         IHTMLDocument2* document);
   ~Script(void);
 
   std::wstring source_code() const { return this->source_code_; }
@@ -49,15 +47,15 @@ public:
     this->result_.Copy(&value);
   }
 
-  int Execute(const Json::Value& args);
+  int Execute(const Json::Value& args, ElementRepository* element_resolver);
   int Execute(const std::vector<CComVariant>& args);
 
 private:
   void Initialize(const std::wstring& script_source,
-                  IHTMLDocument2* document,
-                  ElementRepository* element_resolver);
+                  IHTMLDocument2* document);
 
   int JsonToVariant(const Json::Value& json_arg,
+                    ElementRepository* element_resolver,
                     CComVariant* variant_arg);
 
   int CreateAnonymousFunction(CComVariant* function_object);
@@ -75,7 +73,6 @@ private:
                           CComVariant* object_variant);
 
   CComPtr<IHTMLDocument2> script_engine_host_;
-  ElementRepository* element_resolver_;
   std::wstring source_code_;
   CComVariant result_;
 };

@@ -31,30 +31,27 @@
 namespace webdriver {
 
 Script::Script(const std::string& script_source,
-               IHTMLDocument2* document,
-               ElementRepository* element_resolver) {
+               IHTMLDocument2* document) {
   std::wstring wide_script = StringUtilities::ToWString(script_source);
-  this->Initialize(wide_script, document, element_resolver);
+  this->Initialize(wide_script, document);
 }
 
 Script::Script(const std::wstring& script_source,
-               IHTMLDocument2* document,
-               ElementRepository* element_resolver) {
-  this->Initialize(script_source, document, element_resolver);
+               IHTMLDocument2* document) {
+  this->Initialize(script_source, document);
 }
 
 Script::~Script(void) {
 }
 
 void Script::Initialize(const std::wstring& script_source,
-                        IHTMLDocument2* document,
-                        ElementRepository* element_resolver) {
+                        IHTMLDocument2* document) {
   this->script_engine_host_ = document;
-  this->element_resolver_ = element_resolver;
   this->source_code_ = script_source;
 }
 
-int Script::Execute(const Json::Value& args) {
+int Script::Execute(const Json::Value& args,
+                    ElementRepository* element_resolver) {
   if (!args.isArray()) {
     return EINVALIDARGUMENT;
   }
@@ -63,7 +60,7 @@ int Script::Execute(const Json::Value& args) {
   for (Json::ArrayIndex index = 0; index < args.size(); ++index) {
     Json::Value arg = args[index];
     CComVariant variant_arg;
-    this->JsonToVariant(arg, &variant_arg);
+    this->JsonToVariant(arg, element_resolver, &variant_arg);
     variant_args.push_back(variant_arg);
   }
   return this->Execute(variant_args);
@@ -248,6 +245,7 @@ int Script::InvokeAnonymousFunction(const CComVariant& function_object,
 }
 
 int Script::JsonToVariant(const Json::Value& json_arg,
+                          ElementRepository* element_resolver,
                           CComVariant* variant_arg) {
   int status_code = WD_SUCCESS;
   if (json_arg.isString()) {
@@ -270,6 +268,7 @@ int Script::JsonToVariant(const Json::Value& json_arg,
       Json::Value array_value = json_arg[index];
       CComVariant array_value_variant;
       this->JsonToVariant(array_value,
+                          element_resolver,
                           &array_value_variant);
       std::string index_string = std::to_string(index);
       array_values[index_string] = array_value_variant;
@@ -281,7 +280,7 @@ int Script::JsonToVariant(const Json::Value& json_arg,
     if (json_arg.isMember(JSON_ELEMENT_PROPERTY_NAME)) {
       std::string element_id = json_arg[JSON_ELEMENT_PROPERTY_NAME].asString();
       ElementHandle wrapped_element;
-      status_code = this->element_resolver_->GetManagedElement(
+      status_code = element_resolver->GetManagedElement(
           element_id, &wrapped_element);
       if (status_code == WD_SUCCESS) {
         bool is_element_valid = wrapped_element->IsAttachedToDom();
@@ -289,7 +288,7 @@ int Script::JsonToVariant(const Json::Value& json_arg,
           is_element_valid = wrapped_element->IsContainingDocument(
               this->script_engine_host_);
         } else {
-          this->element_resolver_->RemoveManagedElement(element_id);
+          element_resolver->RemoveManagedElement(element_id);
         }
 
         if (is_element_valid) {
@@ -306,6 +305,7 @@ int Script::JsonToVariant(const Json::Value& json_arg,
         Json::Value property_value = json_arg[*it];
         CComVariant property_value_variant;
         this->JsonToVariant(property_value,
+                            element_resolver,
                             &property_value_variant);
         object_properties[*it] = property_value_variant;
       }

@@ -81,7 +81,7 @@ void GetElementTextCommandHandler::ExecuteInternal(
   std::wstring script_source(L"return ");
   script_source.append(atoms::asString(atoms::GET_TEXT));
 
-  Script get_text_script(script_source, doc, element_repository);
+  Script get_text_script(script_source, doc);
   CComVariant element(element_wrapper->element());
   std::vector<CComVariant> args;
   args.push_back(element);
