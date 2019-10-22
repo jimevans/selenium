@@ -34,6 +34,8 @@ public:
   virtual ~Element(void);
   Json::Value ConvertToJson(void) const;
 
+  bool GetVisibleText(std::string* visible_text);
+
   bool IsAttachedToDom(void);
   bool IsContainingDocument(IHTMLDocument2* document);
 
@@ -41,6 +43,8 @@ public:
   IHTMLElement* element(void) { return this->element_; }
 
 private:
+  bool GetContainingDocument(const bool use_dom_node, IHTMLDocument2** doc);
+
   std::string element_id_;
   CComPtr<IHTMLElement> element_;
 };

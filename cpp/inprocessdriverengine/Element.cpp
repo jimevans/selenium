@@ -17,7 +17,11 @@
 #include "Element.h"
 
 #include "../utils/StringUtilities.h"
+#include "../webdriver-server/errorcodes.h"
 #include "json.h"
+
+#include "Generated/atoms.h"
+#include "Script.h"
 
 namespace webdriver {
 
@@ -34,6 +38,80 @@ Json::Value Element::ConvertToJson() const {
   json_element[JSON_ELEMENT_PROPERTY_NAME] = this->element_id_;
   return json_element;
 }
+
+bool Element::GetVisibleText(std::string* visible_text) {
+  std::wstring script_source(L"return ");
+  script_source.append(atoms::asString(atoms::GET_TEXT));
+
+  CComPtr<IHTMLDocument2> doc;
+  bool document_success = this->GetContainingDocument(false, &doc);
+  if (!document_success) {
+    return false;
+  }
+
+  CComVariant element_variant(this->element_);
+  std::vector<CComVariant> args;
+  args.push_back(element_variant);
+
+  Script get_text_script(script_source, doc);
+  int status_code = get_text_script.Execute(args);
+  if (status_code != WD_SUCCESS) {
+    return false;
+  }
+
+  CComVariant script_result = get_text_script.result();
+  if (script_result.vt != VT_BSTR) {
+    return false;
+  }
+
+  std::wstring text(script_result.bstrVal);
+  *visible_text = StringUtilities::ToString(text);
+
+  return true;
+}
+
+
+bool Element::GetContainingDocument(const bool use_dom_node,
+                                    IHTMLDocument2** doc) {
+  HRESULT hr = S_OK;
+  CComPtr<IDispatch> dispatch_doc;
+
+  if (use_dom_node) {
+    CComPtr<IHTMLDOMNode2> node;
+    hr = this->element_->QueryInterface(&node);
+    if (FAILED(hr)) {
+      //LOGHR(WARN, hr) << "Unable to cast element to IHTMLDomNode2";
+      return false;
+    }
+
+    hr = node->get_ownerDocument(&dispatch_doc);
+    if (FAILED(hr)) {
+      //LOGHR(WARN, hr) << "Unable to locate owning document, call to IHTMLDOMNode2::get_ownerDocument failed";
+      return false;
+    }
+  } else {
+    hr = this->element_->get_document(&dispatch_doc);
+    if (FAILED(hr)) {
+      //LOGHR(WARN, hr) << "Unable to locate document property, call to IHTMLELement::get_document failed";
+      return false;
+    }
+  }
+
+  try {
+    hr = dispatch_doc.QueryInterface<IHTMLDocument2>(doc);
+    if (FAILED(hr)) {
+      //LOGHR(WARN, hr) << "Found document but it's not the expected type (IHTMLDocument2)";
+      return false;
+    }
+  }
+  catch (...) {
+    //LOG(WARN) << "Found document but it's not the expected type (IHTMLDocument2)";
+    return false;
+  }
+
+  return true;
+}
+
 
 bool Element::IsContainingDocument(IHTMLDocument2* document) {
   CComPtr<IDispatch> parent_doc_dispatch;

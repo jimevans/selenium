@@ -16,6 +16,7 @@
 
 #include "GetElementTextCommandHandler.h"
 
+#include <string>
 #include <vector>
 
 #include "json.h"
@@ -52,21 +53,13 @@ void GetElementTextCommandHandler::ExecuteInternal(
 
   std::string element_id = id_parameter_iterator->second.asString();
 
-  CComPtr<IHTMLDocument2> doc;
-  int status_code = executor.GetFocusedDocument(&doc);
-  if (status_code != WD_SUCCESS) {
-    response->SetErrorResponse(status_code,
-                               "Unexpected error retrieving focused document");
-    return;
-  }
-
   InProcessDriver& mutable_executor = const_cast<InProcessDriver&>(executor);
   ElementRepository* element_repository =
       mutable_executor.known_element_repository();
 
   ElementHandle element_wrapper;
-  status_code = element_repository->GetManagedElement(element_id,
-                                                      &element_wrapper);
+  int status_code = element_repository->GetManagedElement(element_id,
+                                                          &element_wrapper);
   if (status_code == ENOSUCHELEMENT) {
       response->SetErrorResponse(
           ERROR_NO_SUCH_ELEMENT,
@@ -78,40 +71,14 @@ void GetElementTextCommandHandler::ExecuteInternal(
     return;
   }
 
-  std::wstring script_source(L"return ");
-  script_source.append(atoms::asString(atoms::GET_TEXT));
-
-  Script get_text_script(script_source, doc);
-  CComVariant element(element_wrapper->element());
-  std::vector<CComVariant> args;
-  args.push_back(element);
-  status_code = get_text_script.Execute(args);
-
-  if (status_code != WD_SUCCESS) {
-    response->SetErrorResponse(status_code,
+  std::string visible_text;
+  bool success = element_wrapper->GetVisibleText(&visible_text);
+  if (!success) {
+    response->SetErrorResponse(ERROR_UNKNOWN_ERROR,
                                "Unable to get element text");
     return;
   }
-
-  Json::Value text_value;
-  status_code = VariantUtilities::VariantAsJsonValue(get_text_script.result(),
-                                                     element_repository,
-                                                     &text_value);
-  if (status_code != WD_SUCCESS) {
-    response->SetErrorResponse(status_code,
-                               "Unable to get element text");
-    return;
-  }
-  if (!text_value.isString()) {
-    // This really should never happen, since we're executing an atom
-    // over which we have complete control. Nevertheless, check for
-    // the error here, just in case.
-    response->SetErrorResponse(
-        ERROR_JAVASCRIPT_ERROR,
-        "Atom retrieving text was executed, but did not return a string");
-    return;
-  }
-  response->SetSuccessResponse(text_value.asString());
+  response->SetSuccessResponse(visible_text);
 }
 
 } // namespace webdriver

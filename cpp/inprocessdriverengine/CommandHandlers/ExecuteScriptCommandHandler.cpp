@@ -16,6 +16,8 @@
 
 #include "ExecuteScriptCommandHandler.h"
 
+#include <string>
+
 #include <MsHTML.h>
 
 #include "../../webdriver-server/errorcodes.h"
