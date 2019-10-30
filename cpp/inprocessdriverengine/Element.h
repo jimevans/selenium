@@ -34,7 +34,16 @@ public:
   virtual ~Element(void);
   Json::Value ConvertToJson(void) const;
 
+  bool IsEnabled(void);
+  bool IsSelected(void);
   bool GetVisibleText(std::string* visible_text);
+  bool GetAttributeValue(const std::string& attribute_name,
+                         std::string* attribute_value);
+  bool GetPropertyValue(const std::string& property_name,
+                        VARIANT* property_value);
+  bool GetCssPropertyValue(const std::string& property_name,
+                           std::string* property_value);
+  bool GetTagName(std::string* tag_name);
 
   bool IsAttachedToDom(void);
   bool IsContainingDocument(IHTMLDocument2* document);
@@ -44,6 +53,7 @@ public:
 
 private:
   bool GetContainingDocument(const bool use_dom_node, IHTMLDocument2** doc);
+  bool IsXmlDocument(IHTMLDocument2* document);
 
   std::string element_id_;
   CComPtr<IHTMLElement> element_;
