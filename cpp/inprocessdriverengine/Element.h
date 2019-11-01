@@ -18,6 +18,9 @@
 #define WEBDRIVER_IE_ELEMENT_H_
 
 #include <string>
+#include <vector>
+
+#include "LocationInfo.h"
 
 #define JSON_ELEMENT_PROPERTY_NAME "element-6066-11e4-a52e-4f735466cecf"
 
@@ -34,8 +37,8 @@ public:
   virtual ~Element(void);
   Json::Value ConvertToJson(void) const;
 
-  bool IsEnabled(void);
-  bool IsSelected(void);
+  bool GetClickableLocation(LocationInfo* click_location);
+
   bool GetVisibleText(std::string* visible_text);
   bool GetAttributeValue(const std::string& attribute_name,
                          std::string* attribute_value);
@@ -44,6 +47,13 @@ public:
   bool GetCssPropertyValue(const std::string& property_name,
                            std::string* property_value);
   bool GetTagName(std::string* tag_name);
+  bool GetRect(FloatingPointLocationInfo* element_rect);
+  bool IsDisplayed(const bool ignore_opacity);
+  bool IsEnabled(void);
+  bool IsSelected(void);
+  bool IsObscured(LocationInfo* click_location,
+                  long* obscuring_element_index,
+                  std::string* obscuring_element_description);
 
   bool IsAttachedToDom(void);
   bool IsContainingDocument(IHTMLDocument2* document);
@@ -52,8 +62,31 @@ public:
   IHTMLElement* element(void) { return this->element_; }
 
 private:
+  static bool RectHasNonZeroDimensions(IHTMLRect* rect);
+
+  bool CalculateClickPoint(const LocationInfo& location,
+                           LocationInfo* click_location);
+  bool GetComputedStyle(IHTMLCSSStyleDeclaration** computed_style);
   bool GetContainingDocument(const bool use_dom_node, IHTMLDocument2** doc);
+  bool GetDocumentFromWindow(IHTMLWindow2* parent_window,
+                             IHTMLDocument2** parent_doc);
+  std::string GetElementHtmlDescription(IHTMLElement* element);
+  bool GetLocationInDocument(LocationInfo* current_location);
+  bool GetTextBoundaries(LocationInfo* text_info);
+  bool GetOverflowState(std::string* overflow_state);
+  bool GetViewPortInfo(LocationInfo* view_port_info);
+  bool HasFirstChildTextNodeOfMultipleChildren(void);
+  bool HasShadowRoot(void);
+  bool IsImageMap(LocationInfo* current_location);
+  bool IsInline(void);
   bool IsXmlDocument(IHTMLDocument2* document);
+
+  bool IsLocationInViewPort(const LocationInfo& location);
+  bool IsLocationInViewPort(const LocationInfo& location,
+                            IHTMLDocument2* owner_doc);
+  bool GetFrameElement(IHTMLDocument2* parent_doc,
+                       IHTMLDocument2* target_doc,
+                       IHTMLElement** frame_element);
 
   std::string element_id_;
   CComPtr<IHTMLElement> element_;

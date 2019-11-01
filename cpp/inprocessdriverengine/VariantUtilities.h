@@ -51,6 +51,9 @@ public:
   static int VariantAsJsonValue(const VARIANT& variant_value,
                                 ElementRepository* element_resolver,
                                 Json::Value* value);
+  static bool GetVariantObjectPropertyValue(IDispatch* variant_object,
+                                            const std::wstring& property_name,
+                                            VARIANT* property_value);
 
 private:
   static int ConvertVariantToJsonValue(const VARIANT& variant_value,
@@ -71,9 +74,6 @@ private:
                           VARIANT* item);
   static int GetPropertyNameList(IDispatch* object_dispatch,
                                  std::vector<std::wstring>* property_names);
-  static bool GetVariantObjectPropertyValue(IDispatch* variant_object,
-                                            const std::wstring& property_name,
-                                            VARIANT* property_value);
 };
 
 } // namespace webdriver
