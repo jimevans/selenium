@@ -18,8 +18,6 @@
 
 #include <string>
 
-#include <MsHTML.h>
-
 #include "../../webdriver-server/errorcodes.h"
 #include "../ElementRepository.h"
 #include "../InProcessDriver.h"

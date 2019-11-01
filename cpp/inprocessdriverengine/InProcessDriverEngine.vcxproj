@@ -213,6 +213,7 @@
     <ClInclude Include="CommandHandlers\GetElementTextCommandHandler.h" />
     <ClInclude Include="CommandHandlers\GetTitleCommandHandler.h" />
     <ClInclude Include="CommandHandlers\GoToUrlCommandHandler.h" />
+    <ClInclude Include="CommandHandlers\stdafx.h" />
     <ClInclude Include="CustomTypes.h" />
     <ClInclude Include="dllmain.h" />
     <ClInclude Include="Element.h" />
@@ -222,6 +223,7 @@
     <ClInclude Include="InProcessCommandHandler.h" />
     <ClInclude Include="InProcessCommandRepository.h" />
     <ClInclude Include="InProcessDriver.h" />
+    <ClInclude Include="LocationInfo.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="Script.h" />
     <ClInclude Include="ScriptException.h" />

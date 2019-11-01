@@ -16,7 +16,7 @@
 
 #include "GoToUrlCommandHandler.h"
 
-#include <MsHTML.h>
+//#include <MsHTML.h>
 
 #include "../../utils/StringUtilities.h"
 #include "../../webdriver-server/errorcodes.h"
