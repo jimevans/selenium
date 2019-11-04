@@ -156,6 +156,7 @@ STDMETHODIMP_(void) InProcessDriver::OnBeforeNavigate2(
   if (this->browser_.IsEqualObject(pDisp)) {
     this->is_navigating_ = false;
     this->CreateWaitThread();
+    this->SetFocusedFrameByElement(nullptr);
   }
 }
 
@@ -362,7 +363,7 @@ int InProcessDriver::GetFocusedDocument(IHTMLDocument2** document) const {
 int InProcessDriver::SetFocusedFrameByElement(IHTMLElement* frame_element) {
   HRESULT hr = S_OK;
   if (!frame_element) {
-    this->focused_frame_ = NULL;
+    this->focused_frame_ = nullptr;
     return WD_SUCCESS;
   }
 
