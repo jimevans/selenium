@@ -33,16 +33,20 @@ void GetTitleCommandHandler::ExecuteInternal(
     const InProcessDriver& executor,
     const ParametersMap& command_parameters,
     Response* response) {
+  CComPtr<IWebBrowser2> browser = executor.browser();
+  CComPtr<IDispatch> document_dispatch;
+  HRESULT hr = browser->get_Document(&document_dispatch);
   CComPtr<IHTMLDocument2> doc;
-  int status_code = executor.GetFocusedDocument(&doc);
-  if (status_code != WD_SUCCESS) {
-    response->SetErrorResponse(status_code,
-      "Unexpected error retrieving focused document");
+  hr = document_dispatch->QueryInterface<IHTMLDocument2>(&doc);
+  if (FAILED(hr)) {
+    response->SetErrorResponse(
+        ENOSUCHDOCUMENT,
+        "Unexpected error retrieving top-level document");
     return;
   }
 
   CComBSTR title;
-  HRESULT hr = doc->get_title(&title);
+  hr = doc->get_title(&title);
   if (FAILED(hr)) {
   }
 
