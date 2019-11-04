@@ -126,7 +126,7 @@
     <Link>
       <SubSystem>Windows</SubSystem>
       <ModuleDefinitionFile>InProcessDriverEngine.def</ModuleDefinitionFile>
-      <AdditionalDependencies>rpcrt4.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>rpcrt4.lib;iepmapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -149,7 +149,7 @@
     <Link>
       <SubSystem>Windows</SubSystem>
       <ModuleDefinitionFile>InProcessDriverEngine.def</ModuleDefinitionFile>
-      <AdditionalDependencies>rpcrt4.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>rpcrt4.lib;iepmapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -176,7 +176,7 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <ModuleDefinitionFile>InProcessDriverEngine.def</ModuleDefinitionFile>
-      <AdditionalDependencies>rpcrt4.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>rpcrt4.lib;iepmapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -203,11 +203,18 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <ModuleDefinitionFile>InProcessDriverEngine.def</ModuleDefinitionFile>
-      <AdditionalDependencies>rpcrt4.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>rpcrt4.lib;iepmapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="ActionSimulators\ActionContext.h" />
+    <ClInclude Include="ActionSimulators\ActionSimulator.h" />
+    <ClInclude Include="ActionSimulators\JavaScriptActionSimulator.h" />
+    <ClInclude Include="ActionSimulators\SendInputActionSimulator.h" />
+    <ClInclude Include="ActionSimulators\SendMessageActionSimulator.h" />
+    <ClInclude Include="ActionSimulators\stdafx.h" />
     <ClInclude Include="cominterfaces.h" />
+    <ClInclude Include="CommandHandlers\ClickElementCommandHandler.h" />
     <ClInclude Include="CommandHandlers\ExecuteScriptCommandHandler.h" />
     <ClInclude Include="CommandHandlers\FindElementCommandHandler.h" />
     <ClInclude Include="CommandHandlers\GetElementTextCommandHandler.h" />
@@ -223,6 +230,8 @@
     <ClInclude Include="InProcessCommandHandler.h" />
     <ClInclude Include="InProcessCommandRepository.h" />
     <ClInclude Include="InProcessDriver.h" />
+    <ClInclude Include="InputManager.h" />
+    <ClInclude Include="InputState.h" />
     <ClInclude Include="LocationInfo.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="Script.h" />
@@ -232,7 +241,12 @@
     <ClInclude Include="VariantUtilities.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="ActionSimulators\ActionSimulator.cpp" />
+    <ClCompile Include="ActionSimulators\JavaScriptActionSimulator.cpp" />
+    <ClCompile Include="ActionSimulators\SendInputActionSimulator.cpp" />
+    <ClCompile Include="ActionSimulators\SendMessageActionSimulator.cpp" />
     <ClCompile Include="cominterfaces.cpp" />
+    <ClCompile Include="CommandHandlers\ClickElementCommandHandler.cpp" />
     <ClCompile Include="CommandHandlers\ExecuteScriptCommandHandler.cpp" />
     <ClCompile Include="CommandHandlers\FindElementCommandHandler.cpp" />
     <ClCompile Include="CommandHandlers\GetElementTextCommandHandler.cpp" />
@@ -245,6 +259,7 @@
     <ClCompile Include="InProcessCommandHandler.cpp" />
     <ClCompile Include="InProcessCommandRepository.cpp" />
     <ClCompile Include="InProcessDriver.cpp" />
+    <ClCompile Include="InputManager.cpp" />
     <ClCompile Include="Script.cpp" />
     <ClCompile Include="ScriptException.cpp" />
     <ClCompile Include="stdafx.cpp">

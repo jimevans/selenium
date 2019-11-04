@@ -411,7 +411,15 @@ bool Element::GetRect(FloatingPointLocationInfo* element_rect) {
   return true;
 }
 
-bool Element::GetClickableLocation(LocationInfo* click_location) {
+bool Element::GetClickableLocationScroll(LocationInfo* click_location) {
+  return this->GetClickableLocation(false, click_location);
+}
+
+bool Element::GetClickableLocationNoScroll(LocationInfo* click_location) {
+  return this->GetClickableLocation(true, click_location);
+}
+
+bool Element::GetClickableLocation(const bool scroll_if_needed, LocationInfo* click_location) {
   LocationInfo element_location = {};
   bool location_result = this->GetLocationInDocument(&element_location);
 
@@ -427,7 +435,11 @@ bool Element::GetClickableLocation(LocationInfo* click_location) {
     return false;
   }
 
-  this->CalculateClickPoint(element_location, click_location);
+  bool is_calculated = this->CalculateClickPoint(element_location, click_location);
+  if (!scroll_if_needed) {
+    return is_calculated;
+  }
+  
   bool is_location_in_view_port = this->IsLocationInViewPort(*click_location);
 
   if (!location_result ||

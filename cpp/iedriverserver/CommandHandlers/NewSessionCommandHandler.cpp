@@ -548,27 +548,31 @@ void NewSessionCommandHandler::SetInputSettings(
     const IESession& executor,
     const Json::Value& capabilities) {
   LOG(TRACE) << "Entering NewSessionCommandHandler::SetInputSettings";
-  //IESession& mutable_executor = const_cast<IESession&>(executor);
-  //InputManagerSettings input_manager_settings;
-  //input_manager_settings.element_repository = mutable_executor.element_manager();
 
-  //Json::Value enable_native_events = this->GetCapability(capabilities,
-  //                                                       NATIVE_EVENTS_CAPABILITY,
-  //                                                       Json::booleanValue,
-  //                                                       true);
-  //input_manager_settings.use_native_events = enable_native_events.asBool();
+  Json::Value enable_native_events = this->GetCapability(
+      capabilities,
+      NATIVE_EVENTS_CAPABILITY,
+      Json::booleanValue,
+      true);
 
-  //Json::Value scroll_behavior = this->GetCapability(capabilities,
-  //                                                  ELEMENT_SCROLL_BEHAVIOR_CAPABILITY,
-  //                                                  Json::intValue,
-  //                                                  Json::Value(Json::intValue));
-  //input_manager_settings.scroll_behavior = static_cast<ElementScrollBehavior>(scroll_behavior.asInt());
+  Json::Value require_window_focus = this->GetCapability(
+      capabilities,
+      REQUIRE_WINDOW_FOCUS_CAPABILITY,
+      Json::booleanValue,
+      false);
 
-  //Json::Value require_window_focus = this->GetCapability(capabilities,
-  //                                                       REQUIRE_WINDOW_FOCUS_CAPABILITY,
-  //                                                       Json::booleanValue,
-  //                                                       false);
-  //input_manager_settings.require_window_focus = require_window_focus.asBool();
+  int action_simulator_type = SEND_MESSAGE_ACTION_SIMULATOR;
+  if (enable_native_events.asBool()) {
+    if (require_window_focus.asBool()) {
+      action_simulator_type = SEND_INPUT_ACTION_SIMULATOR;
+    }
+  } else {
+    action_simulator_type = JAVASCRIPT_ACTION_SIMULATOR;
+  }
+  ::SendMessage(executor.session_settings_window_handle(),
+                WD_SET_SESSION_SETTING,
+                SESSION_SETTING_ACTION_SIMULATOR_TYPE,
+                reinterpret_cast<LPARAM>(&action_simulator_type));
 
   //Json::Value file_upload_dialog_timeout = this->GetCapability(capabilities,
   //                                                             FILE_UPLOAD_DIALOG_TIMEOUT_CAPABILITY,
@@ -577,21 +581,6 @@ void NewSessionCommandHandler::SetInputSettings(
   //if (file_upload_dialog_timeout.asInt() > 0) {
   //  mutable_executor.set_file_upload_dialog_timeout(file_upload_dialog_timeout.asInt());
   //}
-
-  //Json::Value enable_persistent_hover = this->GetCapability(capabilities,
-  //                                                          ENABLE_PERSISTENT_HOVER_CAPABILITY,
-  //                                                          Json::booleanValue,
-  //                                                          true);
-  //if (require_window_focus.asBool() || !enable_native_events.asBool()) {
-  //  // Setting "require_window_focus" implies SendInput() API, and does not
-  //  // therefore require persistent hover. Likewise, not using native events
-  //  // requires no persistent hover either.
-  //  input_manager_settings.enable_persistent_hover = false;
-  //}
-  //else {
-  //  input_manager_settings.enable_persistent_hover = enable_persistent_hover.asBool();
-  //}
-  //mutable_executor.input_manager()->Initialize(input_manager_settings);
 }
 
 Json::Value NewSessionCommandHandler::CreateReturnedCapabilities(
@@ -675,8 +664,6 @@ Json::Value NewSessionCommandHandler::CreateReturnedCapabilities(
   ie_options[ENSURE_CLEAN_SESSION_CAPABILITY] =
       executor.browser_factory()->clear_cache();
   //ie_options[NATIVE_EVENTS_CAPABILITY] = executor.input_manager()->enable_native_events();
-  //ie_options[ENABLE_PERSISTENT_HOVER_CAPABILITY] = executor.input_manager()->use_persistent_hover();
-  //ie_options[ELEMENT_SCROLL_BEHAVIOR_CAPABILITY] = executor.input_manager()->scroll_behavior();
   //ie_options[REQUIRE_WINDOW_FOCUS_CAPABILITY] = executor.input_manager()->require_window_focus();
   //ie_options[FILE_UPLOAD_DIALOG_TIMEOUT_CAPABILITY] = executor.file_upload_dialog_timeout();
 

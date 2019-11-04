@@ -33,6 +33,7 @@ struct SessionSettingsThreadContext {
 
 SessionSettings::SessionSettings() :
     browser_attach_timeout_(0),
+    action_simulator_type_(SEND_MESSAGE_ACTION_SIMULATOR),
     use_strict_file_interactability_(false),
     implicit_wait_timeout_(0),
     script_timeout_(DEFAULT_SCRIPT_TIMEOUT_IN_MILLISECONDS),
@@ -92,6 +93,11 @@ LRESULT SessionSettings::OnGetSessionSetting(UINT uMsg,
       this->proxy_settings_.CopyTo(proxy);
       break;
     }
+    case SESSION_SETTING_ACTION_SIMULATOR_TYPE: {
+      int* action_simulator_type = reinterpret_cast<int*>(lParam);
+      *action_simulator_type = this->action_simulator_type_;
+      break;
+    }
     default: {
       break;
     }
@@ -146,6 +152,11 @@ LRESULT SessionSettings::OnSetSessionSetting(UINT uMsg,
           reinterpret_cast<ProxySettings*>(lParam);
       proxy->CopyTo(&this->proxy_settings_);
       this->proxy_settings_.is_set = true;
+      break;
+    }
+    case SESSION_SETTING_ACTION_SIMULATOR_TYPE: {
+      int* action_simulator_type = reinterpret_cast<int*>(lParam);
+      this->action_simulator_type_ = *action_simulator_type;
       break;
     }
     default: {

@@ -37,7 +37,8 @@ public:
   virtual ~Element(void);
   Json::Value ConvertToJson(void) const;
 
-  bool GetClickableLocation(LocationInfo* click_location);
+  bool GetClickableLocationScroll(LocationInfo* click_location);
+  bool GetClickableLocationNoScroll(LocationInfo* click_location);
 
   bool GetVisibleText(std::string* visible_text);
   bool GetAttributeValue(const std::string& attribute_name,
@@ -64,6 +65,7 @@ public:
 private:
   static bool RectHasNonZeroDimensions(IHTMLRect* rect);
 
+  bool GetClickableLocation(const bool scroll_if_needed, LocationInfo* click_location);
   bool CalculateClickPoint(const LocationInfo& location,
                            LocationInfo* click_location);
   bool GetComputedStyle(IHTMLCSSStyleDeclaration** computed_style);

@@ -18,6 +18,7 @@
 
 #include "../webdriver-server/command_types.h"
 
+#include "CommandHandlers/ClickElementCommandHandler.h"
 #include "CommandHandlers/ExecuteScriptCommandHandler.h"
 #include "CommandHandlers/FindElementCommandHandler.h"
 #include "CommandHandlers/GetElementTextCommandHandler.h"
@@ -60,6 +61,7 @@ void InProcessCommandRepository::PopulateCommandHandlers() {
   this->command_handlers_[webdriver::CommandType::GetTitle] = CommandHandlerHandle(new GetTitleCommandHandler);
   this->command_handlers_[webdriver::CommandType::ExecuteScript] = CommandHandlerHandle(new ExecuteScriptCommandHandler);
   this->command_handlers_[webdriver::CommandType::FindElement] = CommandHandlerHandle(new FindElementCommandHandler);
+  this->command_handlers_[webdriver::CommandType::ClickElement] = CommandHandlerHandle(new ClickElementCommandHandler);
   this->command_handlers_[webdriver::CommandType::GetElementText] = CommandHandlerHandle(new GetElementTextCommandHandler);
 }
 

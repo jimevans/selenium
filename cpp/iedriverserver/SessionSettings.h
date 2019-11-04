@@ -94,6 +94,7 @@ public:
 
 private:
   int browser_attach_timeout_;
+  int action_simulator_type_;
   bool use_strict_file_interactability_;
   long long implicit_wait_timeout_;
   long long script_timeout_;

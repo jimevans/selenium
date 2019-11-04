@@ -22,6 +22,12 @@
     <Filter Include="Header Files\Generated">
       <UniqueIdentifier>{524b1b39-0b59-4904-a8b4-bd66b3babbc4}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\ActionSimulators">
+      <UniqueIdentifier>{1059a107-8749-478e-9a1e-956a76e17b77}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\ActionSimulators">
+      <UniqueIdentifier>{2c20012f-b121-4cd0-88d3-3adc2a3ccbf6}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h">
@@ -93,6 +99,33 @@
     <ClInclude Include="CommandHandlers\stdafx.h">
       <Filter>Header Files\CommandHandlers</Filter>
     </ClInclude>
+    <ClInclude Include="ActionSimulators\ActionSimulator.h">
+      <Filter>Header Files\ActionSimulators</Filter>
+    </ClInclude>
+    <ClInclude Include="ActionSimulators\JavaScriptActionSimulator.h">
+      <Filter>Header Files\ActionSimulators</Filter>
+    </ClInclude>
+    <ClInclude Include="ActionSimulators\SendInputActionSimulator.h">
+      <Filter>Header Files\ActionSimulators</Filter>
+    </ClInclude>
+    <ClInclude Include="ActionSimulators\SendMessageActionSimulator.h">
+      <Filter>Header Files\ActionSimulators</Filter>
+    </ClInclude>
+    <ClInclude Include="ActionSimulators\stdafx.h">
+      <Filter>Header Files\ActionSimulators</Filter>
+    </ClInclude>
+    <ClInclude Include="InputManager.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="InputState.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ActionSimulators\ActionContext.h">
+      <Filter>Header Files\ActionSimulators</Filter>
+    </ClInclude>
+    <ClInclude Include="CommandHandlers\ClickElementCommandHandler.h">
+      <Filter>Header Files\CommandHandlers</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -144,6 +177,24 @@
       <Filter>Source Files\CommandHandlers</Filter>
     </ClCompile>
     <ClCompile Include="CommandHandlers\GetElementTextCommandHandler.cpp">
+      <Filter>Source Files\CommandHandlers</Filter>
+    </ClCompile>
+    <ClCompile Include="ActionSimulators\ActionSimulator.cpp">
+      <Filter>Source Files\ActionSimulators</Filter>
+    </ClCompile>
+    <ClCompile Include="ActionSimulators\JavaScriptActionSimulator.cpp">
+      <Filter>Source Files\ActionSimulators</Filter>
+    </ClCompile>
+    <ClCompile Include="ActionSimulators\SendInputActionSimulator.cpp">
+      <Filter>Source Files\ActionSimulators</Filter>
+    </ClCompile>
+    <ClCompile Include="ActionSimulators\SendMessageActionSimulator.cpp">
+      <Filter>Source Files\ActionSimulators</Filter>
+    </ClCompile>
+    <ClCompile Include="InputManager.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="CommandHandlers\ClickElementCommandHandler.cpp">
       <Filter>Source Files\CommandHandlers</Filter>
     </ClCompile>
   </ItemGroup>

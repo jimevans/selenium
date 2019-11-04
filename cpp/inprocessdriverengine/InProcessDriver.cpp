@@ -16,9 +16,6 @@
 
 #include "InProcessDriver.h"
 
-#include <string>
-#include <vector>
-
 #include <ShlGuid.h>
 
 #include "../utils/WebDriverConstants.h"
@@ -33,10 +30,12 @@
 #include "ElementRepository.h"
 #include "InProcessCommandHandler.h"
 #include "InProcessCommandRepository.h"
+#include "InputManager.h"
 
 #define INTERACTIVE_READY_STATE L"interactive"
 #define COMPLETE_READY_STATE L"complete"
 #define IE_PROCESS_NAME L"iexplore.exe"
+#define IE_SERVER_CHILD_WINDOW_CLASS "Internet Explorer_Server"
 
 struct WaitThreadContext {
   HWND window_handle;
@@ -44,6 +43,9 @@ struct WaitThreadContext {
 
 InProcessDriver::InProcessDriver() : settings_window_(NULL),
                                      notify_window_(NULL),
+                                     top_level_window_(NULL),
+                                     tab_window_(NULL),
+                                     content_window_(NULL),
                                      command_id_(0),
                                      is_navigating_(false),
                                      serialized_command_(""),
@@ -52,6 +54,7 @@ InProcessDriver::InProcessDriver() : settings_window_(NULL),
   this->command_handlers_ = new webdriver::InProcessCommandRepository();
   this->known_element_repository_ = new webdriver::ElementRepository();
   this->element_finder_ = new webdriver::ElementFinder();
+  this->input_manager_ = new webdriver::InputManager();
   this->Create(HWND_MESSAGE);
 }
 
@@ -107,8 +110,11 @@ STDMETHODIMP_(HRESULT) InProcessDriver::SetSite(IUnknown* pUnkSite) {
     CComPtr<IOleWindow> window;
     hr = browser_service_provider->QueryService<IOleWindow>(SID_SShellBrowser,
                                                             &window);
-    HWND handle;
-    hr = window->GetWindow(&handle);
+    hr = window->GetWindow(&this->tab_window_);
+    hr = browser->get_HWND(reinterpret_cast<SHANDLE_PTR*>(&this->top_level_window_));
+    ::EnumChildWindows(this->tab_window_,
+                       &FindChildContentWindow,
+                       reinterpret_cast<LPARAM>(&this->content_window_));
 
     this->browser_ = browser;
     this->script_host_document_ = document;
@@ -220,6 +226,16 @@ LRESULT InProcessDriver::OnInit(UINT nMsg,
                                 BOOL& handled) {
   this->notify_window_ = reinterpret_cast<HWND>(lParam);
   this->settings_window_ = reinterpret_cast<HWND>(wParam);
+  int action_simulator_type = 0;
+  ::SendMessage(this->settings_window_,
+                WD_GET_SESSION_SETTING,
+                SESSION_SETTING_ACTION_SIMULATOR_TYPE,
+                reinterpret_cast<LPARAM>(&action_simulator_type));
+
+  webdriver::InputManagerSettings settings;
+  settings.element_repository = this->known_element_repository_;
+  settings.action_simulator_type = action_simulator_type;
+  input_manager_->Initialize(settings);
   return 0;
 }
 
@@ -421,6 +437,26 @@ void InProcessDriver::CreateWaitThread() {
   }
 }
 
+BOOL CALLBACK InProcessDriver::FindChildContentWindow(HWND hwnd, LPARAM arg) {
+  HWND* content_window = reinterpret_cast<HWND*>(arg);
+
+  // Could this be an Internet Explorer Server window?
+  // 25 == "Internet Explorer_Server\0"
+  char name[25];
+  if (::GetClassNameA(hwnd, name, 25) == 0) {
+    // No match found. Skip
+    return TRUE;
+  }
+
+  if (strcmp(IE_SERVER_CHILD_WINDOW_CLASS, name) != 0) {
+    return TRUE;
+  } else {
+    *content_window = hwnd;
+    return FALSE;
+  }
+
+  return TRUE;
+}
 
 unsigned int WINAPI InProcessDriver::WaitThreadProc(LPVOID lpParameter) {
   WaitThreadContext* thread_context =

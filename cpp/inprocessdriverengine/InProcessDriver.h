@@ -18,6 +18,7 @@
 #define WEBDRIVER_INPROCESSDRIVERENGINE_H_
 
 #include <string>
+#include <vector>
 
 #include <ExDispid.h>
 #include <mshtmldiagnostics.h>
@@ -25,11 +26,13 @@
 #include "../utils/messages.h"
 
 #include "cominterfaces.h"
+#include "InputState.h"
 
 #define BROWSER_EVENTS_ID   250
 
 namespace webdriver {
   class InProcessCommandRepository;
+  class InputManager;
   class ElementRepository;
   class ElementFinder;
 }
@@ -125,6 +128,7 @@ public:
   LRESULT OnWait(UINT nMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
 
   static unsigned int WINAPI WaitThreadProc(LPVOID lpParameter);
+  static BOOL CALLBACK FindChildContentWindow(HWND hwnd, LPARAM arg);
 
   int GetFocusedDocument(IHTMLDocument2** document) const;
 
@@ -140,9 +144,17 @@ public:
     return this->element_finder_;
   }
 
+  webdriver::InputManager* input_manager(void) const {
+    return this->input_manager_;
+  }
+
   void set_is_navigating(const bool is_navigating) {
     this->is_navigating_ = is_navigating;
   }
+
+  HWND top_level_window(void) const { return this->top_level_window_; }
+  HWND tab_window(void) const { return this->tab_window_; }
+  HWND content_window(void) const { return this->content_window_; }
 
 private:
   void CreateWaitThread(void);
@@ -151,6 +163,9 @@ private:
 
   HWND notify_window_;
   HWND settings_window_;
+  HWND top_level_window_;
+  HWND tab_window_;
+  HWND content_window_;
   int command_id_;
   bool is_navigating_;
   std::string serialized_command_;
@@ -158,6 +173,7 @@ private:
   webdriver::InProcessCommandRepository* command_handlers_;
   webdriver::ElementRepository* known_element_repository_;
   webdriver::ElementFinder* element_finder_;
+  webdriver::InputManager* input_manager_;
 
   CComPtr<IWebBrowser2> browser_;
   CComPtr<IHTMLWindow2> focused_frame_;
