@@ -20,10 +20,10 @@
 namespace webdriver {
 
 struct LocationInfo {
-  long x;
-  long y;
-  long width;
-  long height;
+  long x = 0;
+  long y = 0;
+  long width = 0;
+  long height = 0;
 
   LocationInfo(void) {
   }
