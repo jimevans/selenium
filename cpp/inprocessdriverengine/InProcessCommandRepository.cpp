@@ -24,6 +24,8 @@
 #include "CommandHandlers/GetElementTextCommandHandler.h"
 #include "CommandHandlers/GetTitleCommandHandler.h"
 #include "CommandHandlers/GoToUrlCommandHandler.h"
+#include "CommandHandlers/SwitchToFrameCommandHandler.h"
+#include "CommandHandlers/SwitchToParentFrameCommandHandler.h"
 #include "InProcessCommandHandler.h"
 
 namespace webdriver {
@@ -63,6 +65,8 @@ void InProcessCommandRepository::PopulateCommandHandlers() {
   this->command_handlers_[webdriver::CommandType::FindElement] = CommandHandlerHandle(new FindElementCommandHandler);
   this->command_handlers_[webdriver::CommandType::ClickElement] = CommandHandlerHandle(new ClickElementCommandHandler);
   this->command_handlers_[webdriver::CommandType::GetElementText] = CommandHandlerHandle(new GetElementTextCommandHandler);
+  this->command_handlers_[webdriver::CommandType::SwitchToFrame] = CommandHandlerHandle(new SwitchToFrameCommandHandler);
+  this->command_handlers_[webdriver::CommandType::SwitchToParentFrame] = CommandHandlerHandle(new SwitchToParentFrameCommandHandler);
 }
 
 } // namespace webdriver

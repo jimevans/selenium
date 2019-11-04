@@ -359,6 +359,125 @@ int InProcessDriver::GetFocusedDocument(IHTMLDocument2** document) const {
   return WD_SUCCESS;
 }
 
+int InProcessDriver::SetFocusedFrameByElement(IHTMLElement* frame_element) {
+  HRESULT hr = S_OK;
+  if (!frame_element) {
+    this->focused_frame_ = NULL;
+    return WD_SUCCESS;
+  }
+
+  CComPtr<IHTMLWindow2> interim_result;
+  CComPtr<IHTMLObjectElement4> object_element;
+  hr = frame_element->QueryInterface<IHTMLObjectElement4>(&object_element);
+  if (SUCCEEDED(hr) && object_element) {
+    CComPtr<IDispatch> object_disp;
+    object_element->get_contentDocument(&object_disp);
+    if (!object_disp) {
+      //LOG(WARN) << "Cannot get IDispatch interface from IHTMLObjectElement4 element";
+      return ENOSUCHFRAME;
+    }
+
+    CComPtr<IHTMLDocument2> object_doc;
+    object_disp->QueryInterface<IHTMLDocument2>(&object_doc);
+    if (!object_doc) {
+      //LOG(WARN) << "Cannot get IHTMLDocument2 document from IDispatch reference";
+      return ENOSUCHFRAME;
+    }
+
+    hr = object_doc->get_parentWindow(&interim_result);
+    if (FAILED(hr)) {
+      //LOGHR(WARN, hr) << "Cannot get parentWindow from IHTMLDocument2, call to IHTMLDocument2::get_parentWindow failed";
+      return ENOSUCHFRAME;
+    }
+  }
+  else {
+    CComPtr<IHTMLFrameBase2> frame_base;
+    frame_element->QueryInterface<IHTMLFrameBase2>(&frame_base);
+    if (!frame_base) {
+      //LOG(WARN) << "IHTMLElement is not a FRAME or IFRAME element";
+      return ENOSUCHFRAME;
+    }
+
+    hr = frame_base->get_contentWindow(&interim_result);
+    if (FAILED(hr)) {
+      //LOGHR(WARN, hr) << "Cannot get contentWindow from IHTMLFrameBase2, call to IHTMLFrameBase2::get_contentWindow failed";
+      return ENOSUCHFRAME;
+    }
+  }
+
+  this->focused_frame_ = interim_result;
+  return WD_SUCCESS;
+}
+
+int InProcessDriver::SetFocusedFrameByIndex(const int frame_index) {
+  CComPtr<IHTMLDocument2> doc;
+  this->GetFocusedDocument(&doc);
+
+  CComPtr<IHTMLFramesCollection2> frames;
+  HRESULT hr = doc->get_frames(&frames);
+
+  if (!frames) {
+    //LOG(WARN) << "No frames in document are set, IHTMLDocument2::get_frames returned NULL";
+    return ENOSUCHFRAME;
+  }
+
+  long length = 0;
+  frames->get_length(&length);
+  if (!length) {
+    //LOG(WARN) << "No frames in document are found IHTMLFramesCollection2::get_length returned 0";
+    return ENOSUCHFRAME;
+  }
+
+  // Find the frame
+  CComVariant frame_identifier;
+  frame_identifier.vt = VT_I4;
+  frame_identifier.lVal = frame_index;
+  CComVariant frame_holder;
+  hr = frames->item(&frame_identifier, &frame_holder);
+
+  if (FAILED(hr)) {
+    //LOGHR(WARN, hr) << "Error retrieving frame holder, call to IHTMLFramesCollection2::item failed";
+    return ENOSUCHFRAME;
+  }
+
+  CComPtr<IHTMLWindow2> interim_result;
+  frame_holder.pdispVal->QueryInterface<IHTMLWindow2>(&interim_result);
+  if (!interim_result) {
+    //LOG(WARN) << "Error retrieving frame, IDispatch cannot be cast to IHTMLWindow2";
+    return ENOSUCHFRAME;
+  }
+
+  this->focused_frame_ = interim_result;
+  return WD_SUCCESS;
+}
+
+void InProcessDriver::SetFocusedFrameToParent() {
+  // Three possible outcomes.
+  // Outcome 1: Already at top-level browsing context. No-op.
+  if (this->focused_frame_ != NULL) {
+    CComPtr<IHTMLWindow2> parent_window;
+    HRESULT hr = this->focused_frame_->get_parent(&parent_window);
+    if (FAILED(hr)) {
+      //LOGHR(WARN, hr) << "IHTMLWindow2::get_parent call failed.";
+    }
+    CComPtr<IHTMLWindow2> top_window;
+    hr = this->focused_frame_->get_top(&top_window);
+    if (FAILED(hr)) {
+      //LOGHR(WARN, hr) << "IHTMLWindow2::get_top call failed.";
+    }
+    if (top_window.IsEqualObject(parent_window)) {
+      // Outcome 2: Focus is on a frame one level deep, making the
+      // parent the top-level browsing context. Set focused frame
+      // pointer to NULL.
+      this->focused_frame_ = NULL;
+    } else {
+      // Outcome 3: Focus is on a frame more than one level deep.
+      // Set focused frame pointer to parent frame.
+      this->focused_frame_ = parent_window;
+    }
+  }
+}
+
 void InProcessDriver::SendProcessIdList(unsigned long notify_type) {
   if (this->notify_window_ == NULL) {
     // TODO: log the error

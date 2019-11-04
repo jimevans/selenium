@@ -131,6 +131,9 @@ public:
   static BOOL CALLBACK FindChildContentWindow(HWND hwnd, LPARAM arg);
 
   int GetFocusedDocument(IHTMLDocument2** document) const;
+  int SetFocusedFrameByIndex(const int frame_index);
+  int SetFocusedFrameByElement(IHTMLElement* frame_element);
+  void SetFocusedFrameToParent(void);
 
   HWND settings_window_handle(void) const { return this->settings_window_; }
 

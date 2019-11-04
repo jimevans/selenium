@@ -221,6 +221,8 @@
     <ClInclude Include="CommandHandlers\GetTitleCommandHandler.h" />
     <ClInclude Include="CommandHandlers\GoToUrlCommandHandler.h" />
     <ClInclude Include="CommandHandlers\stdafx.h" />
+    <ClInclude Include="CommandHandlers\SwitchToFrameCommandHandler.h" />
+    <ClInclude Include="CommandHandlers\SwitchToParentFrameCommandHandler.h" />
     <ClInclude Include="CustomTypes.h" />
     <ClInclude Include="dllmain.h" />
     <ClInclude Include="Element.h" />
@@ -252,6 +254,8 @@
     <ClCompile Include="CommandHandlers\GetElementTextCommandHandler.cpp" />
     <ClCompile Include="CommandHandlers\GetTitleCommandHandler.cpp" />
     <ClCompile Include="CommandHandlers\GoToUrlCommandHandler.cpp" />
+    <ClCompile Include="CommandHandlers\SwitchToFrameCommandHandler.cpp" />
+    <ClCompile Include="CommandHandlers\SwitchToParentFrameCommandHandler.cpp" />
     <ClCompile Include="dllmain.cpp" />
     <ClCompile Include="Element.cpp" />
     <ClCompile Include="ElementFinder.cpp" />
