@@ -412,11 +412,11 @@ bool Element::GetRect(FloatingPointLocationInfo* element_rect) {
 }
 
 bool Element::GetClickableLocationScroll(LocationInfo* click_location) {
-  return this->GetClickableLocation(false, click_location);
+  return this->GetClickableLocation(true, click_location);
 }
 
 bool Element::GetClickableLocationNoScroll(LocationInfo* click_location) {
-  return this->GetClickableLocation(true, click_location);
+  return this->GetClickableLocation(false, click_location);
 }
 
 bool Element::GetClickableLocation(const bool scroll_if_needed, LocationInfo* click_location) {
@@ -802,7 +802,7 @@ bool Element::GetViewPortInfo(LocationInfo* view_port_info) {
   if (top_level_window.IsEqualObject(window)) {
     top_level_doc = doc;
   } else {
-    this->GetDocumentFromWindow(window, &top_level_doc);
+    this->GetDocumentFromWindow(top_level_window, &top_level_doc);
   }
   CComPtr<IHTMLDocument3> document_element_doc;
   CComPtr<IHTMLElement> document_element;
