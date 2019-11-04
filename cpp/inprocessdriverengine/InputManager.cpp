@@ -52,9 +52,9 @@
 
 namespace webdriver {
 
-InputManager::InputManager() {
-  this->use_native_events_ = true;
-  this->require_window_focus_ = true;
+  InputManager::InputManager() : use_native_events_(true),
+                                 require_window_focus_(true),
+                                 action_simulator_ (nullptr) {
   this->current_input_state_.is_alt_pressed = false;
   this->current_input_state_.is_control_pressed = false;
   this->current_input_state_.is_shift_pressed = false;
@@ -65,12 +65,10 @@ InputManager::InputManager() {
   this->current_input_state_.mouse_y = 0;
   this->current_input_state_.last_click_time = clock();
   this->current_input_state_.error_info = "";
-
-  this->action_simulator_ = NULL;
 }
 
 InputManager::~InputManager(void) {
-  if (this->action_simulator_ != NULL) {
+  if (this->action_simulator_ != nullptr) {
     delete this->action_simulator_;
   }
 }
@@ -80,8 +78,11 @@ void InputManager::Initialize(InputManagerSettings settings) {
   if (settings.action_simulator_type == SEND_INPUT_ACTION_SIMULATOR) {
     this->action_simulator_ = new SendInputActionSimulator();
   } else if (settings.action_simulator_type == JAVASCRIPT_ACTION_SIMULATOR) {
+    this->require_window_focus_ = false;
+    this->use_native_events_ = false;
     this->action_simulator_ = new JavaScriptActionSimulator();
   } else {
+    this->require_window_focus_ = false;
     this->action_simulator_ = new SendMessageActionSimulator();
   }
   this->SetupKeyDescriptions();
