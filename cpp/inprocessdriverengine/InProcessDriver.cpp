@@ -61,6 +61,8 @@ InProcessDriver::InProcessDriver() : settings_window_(NULL),
 InProcessDriver::~InProcessDriver() {
   this->known_element_repository_->Clear();
   delete this->known_element_repository_;
+  delete this->element_finder_;
+  delete this->input_manager_;
   delete this->command_handlers_;
 }
 
