@@ -38,7 +38,15 @@
 
 namespace webdriver {
 
-IESession::IESession() {
+  IESession::IESession() : port_(0),
+                           session_id_(""),
+                           is_valid_(false),
+                           command_timeout_(0),
+                           current_instance_id_(""),
+                           factory_(nullptr),
+                           command_handlers_(nullptr),
+                           instance_manager_window_handle_(0),
+                           session_settings_window_handle_(0) {
 }
 
 IESession::~IESession(void) {
@@ -67,6 +75,8 @@ void IESession::Initialize(void* init_params) {
 void IESession::ShutDown(void) {
   ::SendMessage(this->instance_manager_window_handle_, WM_DESTROY, NULL, NULL);
   ::SendMessage(this->session_settings_window_handle_, WM_DESTROY, NULL, NULL);
+  delete this->command_handlers_;
+  delete this->factory_;
 }
 
 bool IESession::ExecuteCommand(const std::string& command_name,
