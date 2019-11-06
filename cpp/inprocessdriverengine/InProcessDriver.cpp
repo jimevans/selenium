@@ -154,7 +154,6 @@ STDMETHODIMP_(void) InProcessDriver::OnBeforeNavigate2(
     VARIANT* pvarHeaders,
     VARIANT_BOOL* pbCancel) {
   if (this->browser_.IsEqualObject(pDisp)) {
-    this->is_navigating_ = false;
     this->CreateWaitThread();
     this->SetFocusedFrameByElement(nullptr);
   }
@@ -162,6 +161,9 @@ STDMETHODIMP_(void) InProcessDriver::OnBeforeNavigate2(
 
 STDMETHODIMP_(void) InProcessDriver::OnNavigateComplete2(LPDISPATCH pDisp,
                                                          VARIANT* URL) {
+  if (this->browser_.IsEqualObject(pDisp)) {
+    this->is_navigating_ = false;
+  }
 }
 
 STDMETHODIMP_(void) InProcessDriver::OnDocumentComplete(LPDISPATCH pDisp,
@@ -498,6 +500,10 @@ void InProcessDriver::SendProcessIdList(unsigned long notify_type) {
 }
 
 bool InProcessDriver::IsDocumentReady() {
+  if (this->is_navigating_) {
+    return false;
+  }
+
   // CONSIDER: This is set at session creation time, and
   // does not change throughout the session lifetime. Should
   // we perform this lookup once?
