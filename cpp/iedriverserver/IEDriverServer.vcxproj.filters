@@ -183,7 +183,7 @@
       <Filter>Header Files\CommandHandlers</Filter>
     </ClInclude>
     <ClInclude Include="CommandHandlers\stdafx.h">
-      <Filter>Source Files\CommandHandlers</Filter>
+      <Filter>Header Files\CommandHandlers</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
