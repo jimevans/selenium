@@ -43,8 +43,8 @@ void AcceptAlertCommandHandler::ExecuteInternal(
   // This sleep is required to give IE time to draw the dialog.
   ::Sleep(100);
   HWND alert_handle = NULL;
-  if (executor.IsAlertActive(window_handles.content_window_handle,
-                             &alert_handle)) {
+  if (!executor.IsAlertActive(window_handles.content_window_handle,
+                              &alert_handle)) {
     response->SetErrorResponse(ENOSUCHALERT, "No alert is active");
     return;
   } else {

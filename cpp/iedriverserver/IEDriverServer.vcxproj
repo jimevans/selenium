@@ -192,6 +192,7 @@
     <ClInclude Include="CommandHandlers\GetWindowHandlesCommandHandler.h" />
     <ClInclude Include="CommandHandlers\SendAlertTextCommandHandler.h" />
     <ClInclude Include="CommandHandlers\SetTimeoutsCommandHandler.h" />
+    <ClInclude Include="CommandHandlers\stdafx.h" />
     <ClInclude Include="CommandHandlers\SwitchToWindowCommandHandler.h" />
     <ClInclude Include="InstanceManager.h" />
     <ClInclude Include="ProxySettings.h" />

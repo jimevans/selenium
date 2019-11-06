@@ -322,6 +322,7 @@ bool IESession::DispatchInProcessCommand(const std::string& serialized_command,
           "Modal dialog present with text: " + alert_text);
       alert_response.AddAdditionalData("text", alert_text);
       *serialized_response = alert_response.Serialize();
+      return false;
     }
   }
   this->PrepareInProcessCommand(host_window_handle, serialized_command);
