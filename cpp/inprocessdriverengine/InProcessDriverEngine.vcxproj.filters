@@ -132,6 +132,24 @@
     <ClInclude Include="CommandHandlers\SwitchToParentFrameCommandHandler.h">
       <Filter>Header Files\CommandHandlers</Filter>
     </ClInclude>
+    <ClInclude Include="CommandHandlers\FindChildElementCommandHandler.h">
+      <Filter>Header Files\CommandHandlers</Filter>
+    </ClInclude>
+    <ClInclude Include="CommandHandlers\GetCurrentUrlCommandHandler.h">
+      <Filter>Header Files\CommandHandlers</Filter>
+    </ClInclude>
+    <ClInclude Include="CommandHandlers\GoBackCommandHandler.h">
+      <Filter>Header Files\CommandHandlers</Filter>
+    </ClInclude>
+    <ClInclude Include="CommandHandlers\GoForwardCommandHandler.h">
+      <Filter>Header Files\CommandHandlers</Filter>
+    </ClInclude>
+    <ClInclude Include="CommandHandlers\FindChildElementsCommandHandler.h">
+      <Filter>Header Files\CommandHandlers</Filter>
+    </ClInclude>
+    <ClInclude Include="CommandHandlers\FindElementsCommandHandler.h">
+      <Filter>Header Files\CommandHandlers</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -207,6 +225,24 @@
       <Filter>Source Files\CommandHandlers</Filter>
     </ClCompile>
     <ClCompile Include="CommandHandlers\SwitchToParentFrameCommandHandler.cpp">
+      <Filter>Source Files\CommandHandlers</Filter>
+    </ClCompile>
+    <ClCompile Include="CommandHandlers\FindChildElementCommandHandler.cpp">
+      <Filter>Source Files\CommandHandlers</Filter>
+    </ClCompile>
+    <ClCompile Include="CommandHandlers\GetCurrentUrlCommandHandler.cpp">
+      <Filter>Source Files\CommandHandlers</Filter>
+    </ClCompile>
+    <ClCompile Include="CommandHandlers\GoBackCommandHandler.cpp">
+      <Filter>Source Files\CommandHandlers</Filter>
+    </ClCompile>
+    <ClCompile Include="CommandHandlers\GoForwardCommandHandler.cpp">
+      <Filter>Source Files\CommandHandlers</Filter>
+    </ClCompile>
+    <ClCompile Include="CommandHandlers\FindElementsCommandHandler.cpp">
+      <Filter>Source Files\CommandHandlers</Filter>
+    </ClCompile>
+    <ClCompile Include="CommandHandlers\FindChildElementsCommandHandler.cpp">
       <Filter>Source Files\CommandHandlers</Filter>
     </ClCompile>
   </ItemGroup>
