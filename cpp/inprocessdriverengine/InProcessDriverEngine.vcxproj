@@ -226,6 +226,7 @@
     <ClInclude Include="CommandHandlers\GoBackCommandHandler.h" />
     <ClInclude Include="CommandHandlers\GoForwardCommandHandler.h" />
     <ClInclude Include="CommandHandlers\GoToUrlCommandHandler.h" />
+    <ClInclude Include="CommandHandlers\IsElementSelectedCommandHandler.h" />
     <ClInclude Include="CommandHandlers\stdafx.h" />
     <ClInclude Include="CommandHandlers\SwitchToFrameCommandHandler.h" />
     <ClInclude Include="CommandHandlers\SwitchToParentFrameCommandHandler.h" />
@@ -266,6 +267,7 @@
     <ClCompile Include="CommandHandlers\GoBackCommandHandler.cpp" />
     <ClCompile Include="CommandHandlers\GoForwardCommandHandler.cpp" />
     <ClCompile Include="CommandHandlers\GoToUrlCommandHandler.cpp" />
+    <ClCompile Include="CommandHandlers\IsElementSelectedCommandHandler.cpp" />
     <ClCompile Include="CommandHandlers\SwitchToFrameCommandHandler.cpp" />
     <ClCompile Include="CommandHandlers\SwitchToParentFrameCommandHandler.cpp" />
     <ClCompile Include="dllmain.cpp" />

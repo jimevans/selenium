@@ -30,6 +30,7 @@
 #include "CommandHandlers/GoBackCommandHandler.h"
 #include "CommandHandlers/GoForwardCommandHandler.h"
 #include "CommandHandlers/GoToUrlCommandHandler.h"
+#include "CommandHandlers/IsElementSelectedCommandHandler.h"
 #include "CommandHandlers/SwitchToFrameCommandHandler.h"
 #include "CommandHandlers/SwitchToParentFrameCommandHandler.h"
 #include "InProcessCommandHandler.h"
@@ -76,6 +77,7 @@ void InProcessCommandRepository::PopulateCommandHandlers() {
   this->command_handlers_[webdriver::CommandType::FindChildElement] = CommandHandlerHandle(new FindChildElementCommandHandler);
   this->command_handlers_[webdriver::CommandType::FindChildElements] = CommandHandlerHandle(new FindChildElementsCommandHandler);
   this->command_handlers_[webdriver::CommandType::ClickElement] = CommandHandlerHandle(new ClickElementCommandHandler);
+  this->command_handlers_[webdriver::CommandType::IsElementSelected] = CommandHandlerHandle(new IsElementSelectedCommandHandler);
   this->command_handlers_[webdriver::CommandType::GetElementText] = CommandHandlerHandle(new GetElementTextCommandHandler);
   this->command_handlers_[webdriver::CommandType::SwitchToFrame] = CommandHandlerHandle(new SwitchToFrameCommandHandler);
   this->command_handlers_[webdriver::CommandType::SwitchToParentFrame] = CommandHandlerHandle(new SwitchToParentFrameCommandHandler);

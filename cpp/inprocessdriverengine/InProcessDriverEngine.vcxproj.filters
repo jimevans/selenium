@@ -150,6 +150,9 @@
     <ClInclude Include="CommandHandlers\FindElementsCommandHandler.h">
       <Filter>Header Files\CommandHandlers</Filter>
     </ClInclude>
+    <ClInclude Include="CommandHandlers\IsElementSelectedCommandHandler.h">
+      <Filter>Header Files\CommandHandlers</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -243,6 +246,9 @@
       <Filter>Source Files\CommandHandlers</Filter>
     </ClCompile>
     <ClCompile Include="CommandHandlers\FindChildElementsCommandHandler.cpp">
+      <Filter>Source Files\CommandHandlers</Filter>
+    </ClCompile>
+    <ClCompile Include="CommandHandlers\IsElementSelectedCommandHandler.cpp">
       <Filter>Source Files\CommandHandlers</Filter>
     </ClCompile>
   </ItemGroup>
