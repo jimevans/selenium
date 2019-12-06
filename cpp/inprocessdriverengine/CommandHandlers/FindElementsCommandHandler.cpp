@@ -114,12 +114,10 @@ void FindElementsCommandHandler::ExecuteInternal(
         response->SetSuccessResponse(found_elements);
         return;
       }
-    }
-    if (status_code == ENOSUCHWINDOW) {
+    } else if (status_code == ENOSUCHWINDOW) {
       response->SetErrorResponse(ERROR_NO_SUCH_WINDOW, "Unable to find elements on closed window");
       return;
-    }
-    if (status_code != ENOSUCHELEMENT) {
+    } else {
       response->SetErrorResponse(status_code, found_elements.asString());
       return;
     }
