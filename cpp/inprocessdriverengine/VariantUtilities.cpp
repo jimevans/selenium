@@ -78,7 +78,14 @@ bool VariantUtilities::VariantIsElement(const VARIANT& value) {
 }
 
 bool VariantUtilities::VariantIsArray(const VARIANT& value) {
+  HRESULT hr = S_OK;
   if (value.vt != VT_DISPATCH) {
+    return false;
+  }
+
+  CComPtr<IHTMLElement> is_element;
+  hr = value.pdispVal->QueryInterface<IHTMLElement>(&is_element);
+  if (SUCCEEDED(hr) && is_element != nullptr) {
     return false;
   }
 
@@ -104,11 +111,11 @@ bool VariantUtilities::VariantIsArray(const VARIANT& value) {
     // LOG(DEBUG) << "Result type is JScriptTypeInfo";
     LPOLESTR length_property_name = L"length";
     DISPID dispid_length = 0;
-    HRESULT hr = value.pdispVal->GetIDsOfNames(IID_NULL,
-                                               &length_property_name,
-                                               1,
-                                               LOCALE_USER_DEFAULT,
-                                               &dispid_length);
+    hr = value.pdispVal->GetIDsOfNames(IID_NULL,
+                                       &length_property_name,
+                                       1,
+                                       LOCALE_USER_DEFAULT,
+                                       &dispid_length);
     if (SUCCEEDED(hr)) {
       return true;
     }
