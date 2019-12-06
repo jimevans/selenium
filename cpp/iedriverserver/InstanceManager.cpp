@@ -87,14 +87,16 @@ LRESULT InstanceManager::OnGetInstanceList(UINT uMsg,
                                            WPARAM wParam,
                                            LPARAM lParam,
                                            BOOL& bHandled) {
-  std::vector<std::string>* instance_id_list =
-      reinterpret_cast<std::vector<std::string>*>(lParam);
-  std::map<std::string, BrowserInfo>::const_iterator it =
-      this->instances_.begin();
-  for (; it != this->instances_.end(); ++it) {
-    instance_id_list->push_back(it->first);
+  if (lParam != NULL) {
+    std::vector<std::string>* instance_id_list =
+        reinterpret_cast<std::vector<std::string>*>(lParam);
+    std::map<std::string, BrowserInfo>::const_iterator it =
+        this->instances_.begin();
+    for (; it != this->instances_.end(); ++it) {
+      instance_id_list->push_back(it->first);
+    }
   }
-  return 0;
+  return this->instances_.size();
 }
 
 LRESULT InstanceManager::OnNotifyInstanceClose(UINT uMsg,
