@@ -43,173 +43,194 @@ void ClickElementCommandHandler::ExecuteInternal(
     const InProcessDriver& executor,
     const ParametersMap& command_parameters,
     Response* response) {
-  ParametersMap::const_iterator id_parameter_iterator = command_parameters.find("id");
+  ParametersMap::const_iterator id_parameter_iterator =
+      command_parameters.find("id");
   if (id_parameter_iterator == command_parameters.end()) {
-    response->SetErrorResponse(ERROR_INVALID_ARGUMENT, "Missing parameter in URL: id");
+    response->SetErrorResponse(ERROR_INVALID_ARGUMENT,
+                               "Missing parameter in URL: id");
     return;
-  } else {
-    int status_code = WD_SUCCESS;
-    std::string element_id = id_parameter_iterator->second.asString();
+  }
 
-    InProcessDriver& mutable_executor = const_cast<InProcessDriver&>(executor);
-    ElementRepository* element_repository =
-        mutable_executor.known_element_repository();
+  int status_code = WD_SUCCESS;
+  std::string element_id = id_parameter_iterator->second.asString();
 
-    ElementHandle element_wrapper;
-    status_code = element_repository->GetManagedElement(element_id,
-                                                        &element_wrapper);
-    if (status_code == WD_SUCCESS) {
-      if (this->IsFileUploadElement(element_wrapper)) {
-        response->SetErrorResponse(ERROR_INVALID_ARGUMENT, "Cannot call click on an <input type='file'> element. Use sendKeys to upload files.");
-        return;
-      }
-      std::string navigation_url = "";
-      bool reattach_after_click = false;
-      if (this->IsPossibleNavigation(element_wrapper, &navigation_url)) {
-        reattach_after_click = this->IsCrossZoneUrl(navigation_url);
-      }
-      if (executor.input_manager()->enable_native_events()) {
-        if (this->IsOptionElement(element_wrapper)) {
-          std::string option_click_error = "";
-          status_code = this->ExecuteAtom(executor,
-                                          this->GetClickAtom(),
-                                          element_wrapper,
-                                          &option_click_error);
-          if (status_code != WD_SUCCESS) {
-            response->SetErrorResponse(status_code, "Cannot click on option element. " + option_click_error);
-            return;
-          }
-        } else {
-          Json::Value move_action;
-          move_action["type"] = "pointerMove";
-          move_action["origin"] = element_wrapper->ConvertToJson();
-          move_action["duration"] = 0;
+  InProcessDriver& mutable_executor = const_cast<InProcessDriver&>(executor);
+  ElementRepository* element_repository =
+      mutable_executor.known_element_repository();
 
-          Json::Value down_action;
-          down_action["type"] = "pointerDown";
-          down_action["button"] = 0;
-            
-          Json::Value up_action;
-          up_action["type"] = "pointerUp";
-          up_action["button"] = 0;
-
-          Json::Value action_array(Json::arrayValue);
-          action_array.append(move_action);
-          action_array.append(down_action);
-          action_array.append(up_action);
-            
-          Json::Value parameters_value;
-          parameters_value["pointerType"] = "mouse";
-
-          Json::Value value;
-          value["type"] = "pointer";
-          value["id"] = "click action mouse";
-          value["parameters"] = parameters_value;
-          value["actions"] = action_array;
-
-          Json::Value actions(Json::arrayValue);
-          actions.append(value);
-
-          int double_click_time = ::GetDoubleClickTime();
-          int milliseconds_since_last_click = (clock() - executor.input_manager()->last_click_time()) * CLOCKS_PER_SEC / 1000;
-          if (double_click_time - milliseconds_since_last_click > 0) {
-            ::Sleep(double_click_time - milliseconds_since_last_click);
-          }
-
-          // Scroll the target element into view before executing the action
-          // sequence.
-          LocationInfo location = {};
-          element_wrapper->GetClickableLocationScroll(&location);
-
-          bool displayed = element_wrapper->IsDisplayed(true);
-          if (status_code != WD_SUCCESS || !displayed) {
-            response->SetErrorResponse(EELEMENTNOTDISPLAYED,
-                                       "Element is not displayed");
-            return;
-          }
-
-          LocationInfo click_location = {};
-          long obscuring_element_index = -1;
-          std::string obscuring_element_description = "";
-          bool obscured = element_wrapper->IsObscured(&click_location,
-                                                      &obscuring_element_index,
-                                                      &obscuring_element_description);
-          if (obscured) {
-            std::string error_msg = StringUtilities::Format("Element not clickable at point (%d,%d). Other element would receive the click: %s (elementsFromPoint index %d)",
-                                                            click_location.x,
-                                                            click_location.y,
-                                                            obscuring_element_description.c_str(),
-                                                            obscuring_element_index);
-            response->SetErrorResponse(ERROR_ELEMENT_CLICK_INTERCEPTED, error_msg);
-            return;
-          }
-
-          if (reattach_after_click) {
-            //browser_wrapper->InitiateBrowserReattach();
-          }
-          std::string error_info = "";
-          InProcessDriver& mutable_executor = const_cast<InProcessDriver&>(executor);
-          CComPtr<IHTMLDocument2> doc;
-          mutable_executor.GetFocusedDocument(&doc);
-          InputContext context;
-          context.document = doc;
-          context.window_handle = executor.content_window();
-          status_code = mutable_executor.input_manager()->PerformInputSequence(context,
-                                                                               actions,
-                                                                               &error_info);
-          //browser_wrapper->set_wait_required(true);
-          if (status_code != WD_SUCCESS) {
-            if (status_code == EELEMENTCLICKPOINTNOTSCROLLED) {
-              // We hard-code the error code here to be "Element not visible"
-              // to maintain compatibility with previous behavior.
-              response->SetErrorResponse(ERROR_ELEMENT_NOT_INTERACTABLE, "The point at which the driver is attempting to click on the element was not scrolled into the viewport.");
-            } else {
-              response->SetErrorResponse(status_code, "Cannot click on element");
-            }
-            return;
-          }
-        }
-      } else {
-        bool displayed;
-        displayed = element_wrapper->IsDisplayed(true);
-        if (status_code != WD_SUCCESS) {
-          response->SetErrorResponse(status_code, "Unable to determine element is displayed");
-          return;
-        } 
-
-        if (!displayed) {
-          response->SetErrorResponse(ERROR_ELEMENT_NOT_INTERACTABLE, "Element is not displayed");
-          return;
-        }
-        std::string synthetic_click_error = "";
-        status_code = this->ExecuteAtom(executor,
-                                        this->GetSyntheticClickAtom(),
-                                        element_wrapper,
-                                        &synthetic_click_error);
-        if (status_code != WD_SUCCESS) {
-          // This is a hack. We should change this when we can get proper error
-          // codes back from the atoms. We'll assume the script failed because
-          // the element isn't visible.
-          response->SetErrorResponse(ERROR_ELEMENT_NOT_INTERACTABLE,
-              "Received a JavaScript error attempting to click on the element using synthetic events. We are assuming this is because the element isn't displayed, but it may be due to other problems with executing JavaScript.");
-          return;
-        }
-      }
-    } else if (status_code == ENOSUCHELEMENT) {
-      response->SetErrorResponse(ERROR_NO_SUCH_ELEMENT, "Invalid internal element ID requested: " + element_id);
-      return;
+  ElementHandle element_wrapper;
+  status_code = element_repository->GetManagedElement(element_id,
+                                                      &element_wrapper);
+  if (status_code != WD_SUCCESS) {
+    if (status_code == ENOSUCHELEMENT) {
+      response->SetErrorResponse(
+          ERROR_NO_SUCH_ELEMENT,
+          "Invalid internal element ID requested: " + element_id);
     } else {
       response->SetErrorResponse(status_code, "Element is no longer valid");
+    }
+    return;
+  }
+
+  if (this->IsFileUploadElement(element_wrapper)) {
+    response->SetErrorResponse(
+        ERROR_INVALID_ARGUMENT,
+        "Cannot call click on an <input type='file'> element. Use sendKeys to upload files.");
+    return;
+  }
+  std::string navigation_url = "";
+  bool reattach_after_click = false;
+  if (this->IsPossibleNavigation(element_wrapper, &navigation_url)) {
+    reattach_after_click = this->IsCrossZoneUrl(navigation_url);
+  }
+  if (executor.input_manager()->enable_native_events()) {
+    if (this->IsOptionElement(element_wrapper)) {
+      std::string option_click_error = "";
+      status_code = this->ExecuteAtom(executor,
+                                      this->GetClickAtom(),
+                                      element_wrapper,
+                                      &option_click_error);
+      if (status_code != WD_SUCCESS) {
+        response->SetErrorResponse(
+            status_code,
+            "Cannot click on option element. " + option_click_error);
+        return;
+      }
+    } else {
+      Json::Value move_action;
+      move_action["type"] = "pointerMove";
+      move_action["origin"] = element_wrapper->ConvertToJson();
+      move_action["duration"] = 0;
+
+      Json::Value down_action;
+      down_action["type"] = "pointerDown";
+      down_action["button"] = 0;
+            
+      Json::Value up_action;
+      up_action["type"] = "pointerUp";
+      up_action["button"] = 0;
+
+      Json::Value action_array(Json::arrayValue);
+      action_array.append(move_action);
+      action_array.append(down_action);
+      action_array.append(up_action);
+            
+      Json::Value parameters_value;
+      parameters_value["pointerType"] = "mouse";
+
+      Json::Value value;
+      value["type"] = "pointer";
+      value["id"] = "click action mouse";
+      value["parameters"] = parameters_value;
+      value["actions"] = action_array;
+
+      Json::Value actions(Json::arrayValue);
+      actions.append(value);
+
+      int double_click_time = ::GetDoubleClickTime();
+      int milliseconds_since_last_click =
+          (clock() - executor.input_manager()->last_click_time())
+          * CLOCKS_PER_SEC / 1000;
+      if (double_click_time - milliseconds_since_last_click > 0) {
+        ::Sleep(double_click_time - milliseconds_since_last_click);
+      }
+
+      // Scroll the target element into view before executing the action
+      // sequence.
+      LocationInfo location = {};
+      element_wrapper->GetClickableLocationScroll(&location);
+
+      bool displayed = element_wrapper->IsDisplayed(true);
+      if (status_code != WD_SUCCESS || !displayed) {
+        response->SetErrorResponse(EELEMENTNOTDISPLAYED,
+                                    "Element is not displayed");
+        return;
+      }
+
+      LocationInfo click_location = {};
+      long obscuring_element_index = -1;
+      std::string obscuring_element_description = "";
+      bool obscured = element_wrapper->IsObscured(
+          &click_location,
+          &obscuring_element_index,
+          &obscuring_element_description);
+      if (obscured) {
+        std::string error_msg = StringUtilities::Format(
+            "Element not clickable at point (%d,%d). Other element would receive the click: %s (elementsFromPoint index %d)",
+            click_location.x,
+            click_location.y,
+            obscuring_element_description.c_str(),
+            obscuring_element_index);
+        response->SetErrorResponse(ERROR_ELEMENT_CLICK_INTERCEPTED, error_msg);
+        return;
+      }
+
+      if (reattach_after_click) {
+        //browser_wrapper->InitiateBrowserReattach();
+      }
+      std::string error_info = "";
+      InProcessDriver& mutable_executor =
+          const_cast<InProcessDriver&>(executor);
+      CComPtr<IHTMLDocument2> doc;
+      mutable_executor.GetFocusedDocument(&doc);
+      InputContext context;
+      context.document = doc;
+      context.window_handle = executor.content_window();
+      status_code =
+          mutable_executor.input_manager()->PerformInputSequence(context,
+                                                                 actions,
+                                                                 &error_info);
+      //browser_wrapper->set_wait_required(true);
+      if (status_code != WD_SUCCESS) {
+        if (status_code == EELEMENTCLICKPOINTNOTSCROLLED) {
+          // We hard-code the error code here to be "Element not visible"
+          // to maintain compatibility with previous behavior.
+          response->SetErrorResponse(
+              ERROR_ELEMENT_NOT_INTERACTABLE,
+              "The point at which the driver is attempting to click on the element was not scrolled into the viewport.");
+        } else {
+          response->SetErrorResponse(status_code, "Cannot click on element");
+        }
+        return;
+      }
+    }
+  } else {
+    bool displayed;
+    displayed = element_wrapper->IsDisplayed(true);
+    if (status_code != WD_SUCCESS) {
+      response->SetErrorResponse(status_code,
+                                 "Unable to determine element is displayed");
+      return;
+    } 
+
+    if (!displayed) {
+      response->SetErrorResponse(ERROR_ELEMENT_NOT_INTERACTABLE,
+                                 "Element is not displayed");
       return;
     }
-
-    response->SetSuccessResponse(Json::Value::null);
+    std::string synthetic_click_error = "";
+    status_code = this->ExecuteAtom(executor,
+                                    this->GetSyntheticClickAtom(),
+                                    element_wrapper,
+                                    &synthetic_click_error);
+    if (status_code != WD_SUCCESS) {
+      // This is a hack. We should change this when we can get proper error
+      // codes back from the atoms. We'll assume the script failed because
+      // the element isn't visible.
+      response->SetErrorResponse(ERROR_ELEMENT_NOT_INTERACTABLE,
+          "Received a JavaScript error attempting to click on the element using synthetic events. We are assuming this is because the element isn't displayed, but it may be due to other problems with executing JavaScript.");
+      return;
+    }
   }
+
+  response->SetSuccessResponse(Json::Value::null);
 }
 
-bool ClickElementCommandHandler::IsOptionElement(ElementHandle element_wrapper) {
+bool ClickElementCommandHandler::IsOptionElement(
+    ElementHandle element_wrapper) {
   CComPtr<IHTMLOptionElement> option;
-  HRESULT(hr) = element_wrapper->element()->QueryInterface<IHTMLOptionElement>(&option);
+  HRESULT(hr) =
+      element_wrapper->element()->QueryInterface<IHTMLOptionElement>(&option);
   return SUCCEEDED(hr) && !!option;
 }
 
@@ -307,8 +328,9 @@ bool ClickElementCommandHandler::IsCrossZoneUrl(const std::string& url) {
   return is_cross_zone;
 }
 
-bool ClickElementCommandHandler::IsPossibleNavigation(ElementHandle element_wrapper,
-                                                      std::string* url) {
+bool ClickElementCommandHandler::IsPossibleNavigation(
+    ElementHandle element_wrapper,
+    std::string* url) {
   CComPtr<IHTMLAnchorElement> anchor;
   element_wrapper->element()->QueryInterface<IHTMLAnchorElement>(&anchor);
   if (anchor) {
