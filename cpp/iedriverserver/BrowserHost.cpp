@@ -17,6 +17,7 @@
 #include "BrowserHost.h"
 
 #include <algorithm>
+#include <ctime>
 #include <mutex>
 
 #include <atlsafe.h>
@@ -35,6 +36,7 @@
 #include "BrowserInfo.h"
 #include "cominterfaces.h"
 
+#define IE_PROCESS_NAME L"iexplore.exe"
 #define HTML_GETOBJECT_MSG L"WM_HTML_GETOBJECT"
 #define OLEACC_LIBRARY_NAME L"OLEACC.DLL"
 #define THREAD_WAIT_TIMEOUT 30000
@@ -64,6 +66,7 @@ BrowserHost::BrowserHost() : top_level_window_handle_(NULL),
                              settings_window_handle_(NULL),
                              is_command_aborted_(false),
                              is_explicit_close_requested_(false),
+                             is_awaiting_window_sync_(false),
                              is_ignoring_protected_mode_(false),
                              command_(""),
                              response_(""),
@@ -73,6 +76,14 @@ BrowserHost::BrowserHost() : top_level_window_handle_(NULL),
                                              WM_COPYDATA,
                                              MSGFLT_ALLOW,
                                              NULL);
+  allow = ::ChangeWindowMessageFilterEx(window_handle,
+                                        WD_NOTIFY_PENDING_NEW_WINDOW,
+                                        MSGFLT_ALLOW,
+                                        NULL);
+  allow = ::ChangeWindowMessageFilterEx(window_handle,
+                                        WD_NOTIFY_PENDING_REACQUIRE,
+                                        MSGFLT_ALLOW,
+                                        NULL);
 }
 
 bool BrowserHost::Initialize(const DWORD process_id,
@@ -156,24 +167,30 @@ LRESULT BrowserHost::OnCopyData(UINT nMsg,
     // ASSUMPTION: Sent string data is null-terminated.
     std::string received_data(&buffer[0]);
     this->response_ = received_data;
-    return 0;
   }
 
-  if (data->dwData == COPYDATA_NEW_WINDOW_PROCESS_ID_LIST ||
-      data->dwData == COPYDATA_SAME_WINDOW_PROCESS_ID_LIST) {
-    this->known_process_ids_.clear();
-    size_t id_count = buffer.size() / sizeof(DWORD);
-    DWORD* process_id_pointer = reinterpret_cast<DWORD*>(buffer.data());
-    for (unsigned int i = 0; i < id_count; ++i) {
-      this->known_process_ids_.push_back(*process_id_pointer);
-      ++process_id_pointer;
-    }
-    if (data->dwData == COPYDATA_SAME_WINDOW_PROCESS_ID_LIST) {
-      this->PostMessageToSelf(WD_REACQUIRE_BROWSER);
-    } else {
-      this->PostMessageToSelf(WD_BROWSER_NEW_WINDOW);
-    }
-  }
+  return 0;
+}
+
+LRESULT BrowserHost::OnPendingNewWindow(UINT nMsg,
+                                        WPARAM wParam,
+                                        LPARAM lParam,
+                                        BOOL& bHandled) {
+  this->is_awaiting_window_sync_ = true;
+  webdriver::WindowUtilities::GetProcessesByName(IE_PROCESS_NAME,
+                                                 &this->known_process_ids_);
+  this->PostMessageToSelf(WD_BROWSER_NEW_WINDOW);
+  return 0;
+}
+
+LRESULT BrowserHost::OnPendingReacquire(UINT nMsg,
+                                        WPARAM wParam,
+                                        LPARAM lParam,
+                                        BOOL& bHandled) {
+  this->is_awaiting_window_sync_ = true;
+  webdriver::WindowUtilities::GetProcessesByName(IE_PROCESS_NAME,
+                                                 &this->known_process_ids_);
+  this->PostMessageToSelf(WD_REACQUIRE_BROWSER);
   return 0;
 }
 
@@ -195,6 +212,7 @@ LRESULT BrowserHost::OnSetCommand(UINT uMsg,
   std::string serialized_command(*(reinterpret_cast<std::string*>(lParam)));
   this->command_ = serialized_command;
   this->is_command_aborted_ = false;
+  this->is_awaiting_window_sync_ = false;
 
   return set_command_result;
 }
@@ -239,10 +257,16 @@ LRESULT BrowserHost::OnExecCommand(UINT uMsg,
     return 0;
   }
 
+  int max_retries = 100;
+  while (this->is_awaiting_window_sync_ && max_retries > 0) {
+    ::Sleep(50);
+    --max_retries;
+  }
   ::PostMessage(this->in_proc_executor_handle_,
                 WD_GET_RESPONSE,
                 reinterpret_cast<WPARAM>(this->m_hWnd),
                 NULL);
+
   return 0;
 }
 
@@ -267,6 +291,8 @@ LRESULT BrowserHost::OnGetResponse(UINT uMsg,
            this->response_.c_str());
 
   // Reset the serialized response for the next command.
+  this->is_command_aborted_ = false;
+  this->is_awaiting_window_sync_ = false;
   this->response_ = "";
   this->command_ = "";
   return 0;
@@ -276,7 +302,12 @@ LRESULT BrowserHost::OnAbortCommand(UINT uMsg,
                                     WPARAM wParam,
                                     LPARAM lParam,
                                     BOOL& bHandled) {
+  ::SendMessage(this->in_proc_executor_handle_,
+                WD_ABORT_COMMAND,
+                NULL,
+                NULL);
   this->is_command_aborted_ = true;
+  this->is_awaiting_window_sync_ = false;
   return 0;
 }
 
@@ -307,24 +338,19 @@ LRESULT BrowserHost::OnReacquireBrowser(UINT uMsg,
     }
 
     if (new_process_ids.size() > 1) {
+      ;
       //LOG(WARN) << "Found more than one new iexplore.exe process. It is "
       //  << "impossible to know which is the proper one. Choosing one "
       //  << "at random.";
     }
 
-    HWND document_handle;
     DWORD new_process_id = new_process_ids[0];
-    if (!this->IsBrowserProcessInitialized(new_process_id, &document_handle)) {
-      // If the browser for the new process ID is not yet ready,
-      // repost the message
-      this->PostMessageToSelf(WD_REACQUIRE_BROWSER);
-      return 0;
-    }
 
     this->browser_.Release();
     this->Initialize(new_process_id,
                      this->notify_window_handle_,
                      this->settings_window_handle_);
+    this->is_awaiting_window_sync_ = false;
   }
   return 0;
 }
@@ -342,24 +368,18 @@ LRESULT BrowserHost::OnBrowserNewWindow(UINT uMsg,
   }
 
   if (new_process_ids.size() > 1) {
+    ;
     //LOG(WARN) << "Found more than one new iexplore.exe process. It is "
     //  << "impossible to know which is the proper one. Choosing one "
     //  << "at random.";
   }
 
-  HWND document_handle;
   DWORD new_process_id = new_process_ids[0];
-  if (!this->IsBrowserProcessInitialized(new_process_id, &document_handle)) {
-    // If the browser for the new process ID is not yet ready,
-    // repost the message
-    this->PostMessageToSelf(WD_BROWSER_NEW_WINDOW);
-    return 0;
-  }
 
   BrowserHost::CreateInstance(new_process_id,
                               this->notify_window_handle_,
                               this->settings_window_handle_);
-
+  this->is_awaiting_window_sync_ = false;
   return 0;
 }
 
@@ -541,7 +561,7 @@ std::string BrowserHost::CreateInstance(const DWORD process_id,
 void BrowserHost::GetNewBrowserProcessIds(
     std::vector<DWORD>* new_process_ids) {
   std::vector<DWORD> all_ie_process_ids;
-  WindowUtilities::GetProcessesByName(L"iexplore.exe", &all_ie_process_ids);
+  WindowUtilities::GetProcessesByName(IE_PROCESS_NAME, &all_ie_process_ids);
 
   // Maximum size of the new process list is if all IE processes are unknown.
   std::vector<DWORD> temp_new_process_ids(all_ie_process_ids.size());
@@ -555,7 +575,13 @@ void BrowserHost::GetNewBrowserProcessIds(
                           this->known_process_ids_.end(),
                           temp_new_process_ids.begin());
   temp_new_process_ids.resize(end_iterator - temp_new_process_ids.begin());
-  *new_process_ids = temp_new_process_ids;
+  std::vector<DWORD>::const_iterator it = temp_new_process_ids.begin();
+  for (; it != temp_new_process_ids.end(); ++it) {
+    HWND document_handle;
+    if (this->IsBrowserProcessInitialized(*it, &document_handle)) {
+      new_process_ids->push_back(*it);
+    }
+  }
 }
 
 void BrowserHost::PostMessageToSelf(UINT msg) {

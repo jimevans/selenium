@@ -18,6 +18,7 @@
 
 #include <ShlGuid.h>
 
+#include "../utils/StringUtilities.h"
 #include "../utils/WebDriverConstants.h"
 #include "../utils/WindowUtilities.h"
 #include "../webdriver-server/command.h"
@@ -39,6 +40,16 @@
 
 struct WaitThreadContext {
   HWND window_handle;
+  int command_id_size;
+  LPSTR command_id;
+};
+
+struct ProcessIdThreadContext {
+  HWND notify_window;
+  HWND sending_window;
+  DWORD notification_type;
+  DWORD process_count;
+  DWORD* process_id_list;
 };
 
 InProcessDriver::InProcessDriver() : settings_window_(NULL),
@@ -46,7 +57,8 @@ InProcessDriver::InProcessDriver() : settings_window_(NULL),
                                      top_level_window_(NULL),
                                      tab_window_(NULL),
                                      content_window_(NULL),
-                                     command_id_(0),
+                                     command_id_(""),
+                                     command_status_(UNINITIALIZED),
                                      is_navigating_(false),
                                      serialized_command_(""),
                                      serialized_response_(""),
@@ -72,7 +84,7 @@ STDMETHODIMP_(HRESULT) InProcessDriver::SetSite(IUnknown* pUnkSite) {
     this->DispEventUnadvise(this->browser_);
     this->DestroyWindow();
     if (this->notify_window_ != NULL) {
-      this->SendProcessIdList(COPYDATA_SAME_WINDOW_PROCESS_ID_LIST);
+      ::SendMessage(this->notify_window_, WD_NOTIFY_PENDING_REACQUIRE, NULL, NULL);
     }
     ::PostQuitMessage(0);
     return hr;
@@ -155,8 +167,11 @@ STDMETHODIMP_(void) InProcessDriver::OnBeforeNavigate2(
     VARIANT* pvarData,
     VARIANT* pvarHeaders,
     VARIANT_BOOL* pbCancel) {
+  std::string command_id = this->command_id_;
   if (this->browser_.IsEqualObject(pDisp)) {
-    this->CreateWaitThread();
+    if (command_id.size() > 0) {
+      this->CreateWaitThread(command_id);
+    }
     this->SetFocusedFrameByElement(nullptr);
   }
 }
@@ -179,7 +194,7 @@ STDMETHODIMP_(void) InProcessDriver::OnNewWindow(LPDISPATCH ppDisp,
                                                  BSTR bstrUrl) {
 
   if (this->notify_window_ != NULL) {
-    this->SendProcessIdList(COPYDATA_NEW_WINDOW_PROCESS_ID_LIST);
+    ::SendMessage(this->notify_window_, WD_NOTIFY_PENDING_NEW_WINDOW, NULL, NULL);
   }
 }
 
@@ -202,8 +217,9 @@ LRESULT InProcessDriver::OnCopyData(UINT nMsg,
   buffer[buffer.size() - 1] = '\0';
   std::string received_data(&buffer[0]);
 
-  ++this->command_id_;
+  this->command_id_ = webdriver::StringUtilities::CreateGuid();
   this->serialized_command_ = received_data;
+  this->command_status_ = READY;
   return 0;
 }
 
@@ -254,12 +270,13 @@ LRESULT InProcessDriver::OnExecuteCommand(UINT nMsg,
   webdriver::CommandHandlerHandle command_handler =
       this->command_handlers_->GetCommandHandler(command.command_type());
 
-  int executing_command_id = this->command_id_;
+  std::string executing_command_id = this->command_id_;
   webdriver::Response response;
   if (command_handler == nullptr) {
     response.SetErrorResponse(ERROR_UNKNOWN_COMMAND,
                               "No handler for " + command.command_type());
   } else {
+    this->command_status_ = EXECUTING;
     command_handler->Execute(*this, command, &response);
   }
   if (this->is_navigating_) {
@@ -275,10 +292,28 @@ LRESULT InProcessDriver::OnExecuteCommand(UINT nMsg,
   // CONSIDER: We could probably make this more robust by assigning
   // an ID to each command and keeping track of all in-process commands.
   // This is a potential future enhancement, if it's found necessary.
-  if (executing_command_id == this->command_id_) {
+  if (executing_command_id == this->command_id_ &&
+      this->command_status_ != ABORTED) {
     this->serialized_response_ = response.Serialize();
+    this->command_status_ = COMPLETE;
   }
   return 0;
+}
+
+LRESULT InProcessDriver::OnAbortCommand(UINT nMsg,
+                                        WPARAM wParam,
+                                        LPARAM lParam,
+                                        BOOL& handled) {
+  this->command_status_ = ABORTED;
+  this->command_id_ = "";
+  return 0;
+}
+
+LRESULT InProcessDriver::OnGetCommandStatus(UINT nMsg,
+                                            WPARAM wParam,
+                                            LPARAM lParam,
+                                            BOOL& handled) {
+  return this->command_status_;
 }
 
 LRESULT InProcessDriver::OnGetResponseLength(UINT nMsg,
@@ -293,10 +328,11 @@ LRESULT InProcessDriver::OnGetResponse(UINT nMsg,
                                        LPARAM lParam,
                                        BOOL& handled) {
   HWND return_window = reinterpret_cast<HWND>(wParam);
-  std::vector<char> response_buffer(this->serialized_response_.size() + 1);
+  std::string serialized_response = this->serialized_response_;
+  std::vector<char> response_buffer(serialized_response.size() + 1);
   strcpy_s(&response_buffer[0],
            response_buffer.size(),
-           this->serialized_response_.c_str());
+           serialized_response.c_str());
   response_buffer[response_buffer.size() - 1] = '\0';
 
   COPYDATASTRUCT copy_data;
@@ -309,6 +345,8 @@ LRESULT InProcessDriver::OnGetResponse(UINT nMsg,
                 reinterpret_cast<LPARAM>(&copy_data));
   this->serialized_command_ = "";
   this->serialized_response_ = "";
+  this->command_status_ = UNINITIALIZED;
+  this->command_id_ = "";
   return 0;
 }
 
@@ -316,12 +354,24 @@ LRESULT InProcessDriver::OnWait(UINT nMsg,
                                 WPARAM wParam,
                                 LPARAM lParam,
                                 BOOL& handled) {
-  if (this->IsDocumentReady()) {
-    webdriver::Response response;
-    response.SetSuccessResponse(Json::Value::null);
-    this->serialized_response_ = response.Serialize();
-  } else {
-    this->CreateWaitThread();
+  WaitThreadContext* context = reinterpret_cast<WaitThreadContext*>(lParam);
+  std::vector<char> command_id_buffer(context->command_id_size);
+  strcpy_s(&command_id_buffer[0],
+           context->command_id_size,
+           context->command_id);
+  std::string command_id(&command_id_buffer[0]);
+  delete[] context->command_id;
+  delete context;
+
+  if (command_id.size() != 0 && command_id == this->command_id_ &&
+      this->command_status_ != ABORTED) {
+    if (this->IsDocumentReady()) {
+      webdriver::Response response;
+      response.SetSuccessResponse(Json::Value::null);
+      this->serialized_response_ = response.Serialize();
+    } else {
+      this->CreateWaitThread(command_id);
+    }
   }
   return 0;
 }
@@ -483,24 +533,6 @@ void InProcessDriver::SetFocusedFrameToParent() {
   }
 }
 
-void InProcessDriver::SendProcessIdList(unsigned long notify_type) {
-  if (this->notify_window_ == NULL) {
-    // TODO: log the error
-    return;
-  }
-  std::vector<DWORD> process_ids;
-  webdriver::WindowUtilities::GetProcessesByName(IE_PROCESS_NAME,
-                                                  &process_ids);
-  COPYDATASTRUCT copy_data;
-  copy_data.dwData = notify_type;
-  copy_data.cbData = static_cast<DWORD>(process_ids.size() * sizeof(DWORD));
-  copy_data.lpData = reinterpret_cast<LPVOID>(&process_ids);
-  ::SendMessage(this->notify_window_,
-                WM_COPYDATA,
-                reinterpret_cast<WPARAM>(this->m_hWnd),
-                reinterpret_cast<LPARAM>(&copy_data));
-}
-
 bool InProcessDriver::IsDocumentReady() {
   if (this->is_navigating_) {
     return false;
@@ -544,7 +576,7 @@ bool InProcessDriver::IsDocumentReady() {
   return ready_state_bstr == COMPLETE_READY_STATE;
 }
 
-void InProcessDriver::CreateWaitThread() {
+void InProcessDriver::CreateWaitThread(const std::string& command_id) {
   // If we are still waiting, we need to wait a bit then post a message to
   // ourselves to run the wait again. However, we can't wait using Sleep()
   // on this thread. This call happens in a message loop, and we would be
@@ -552,6 +584,11 @@ void InProcessDriver::CreateWaitThread() {
   // to sleep.
   WaitThreadContext* thread_context = new WaitThreadContext;
   thread_context->window_handle = this->m_hWnd;
+  thread_context->command_id_size = command_id.size() + 1;
+  thread_context->command_id = new char[thread_context->command_id_size];
+  strcpy_s(thread_context->command_id,
+           thread_context->command_id_size,
+           command_id.c_str());
   unsigned int thread_id = 0;
   HANDLE thread_handle = reinterpret_cast<HANDLE>(
       _beginthreadex(NULL,
@@ -563,6 +600,11 @@ void InProcessDriver::CreateWaitThread() {
   if (thread_handle != NULL) {
     ::CloseHandle(thread_handle);
   }
+}
+
+void InProcessDriver::WriteDebug(const std::string& message) {
+  std::string actual = "******** " + message + "\n";
+  ::OutputDebugStringA(actual.c_str());
 }
 
 BOOL CALLBACK InProcessDriver::FindChildContentWindow(HWND hwnd, LPARAM arg) {
@@ -590,9 +632,11 @@ unsigned int WINAPI InProcessDriver::WaitThreadProc(LPVOID lpParameter) {
   WaitThreadContext* thread_context =
       reinterpret_cast<WaitThreadContext*>(lpParameter);
   HWND window_handle = thread_context->window_handle;
-  delete thread_context;
 
   ::Sleep(50);
-  ::PostMessage(window_handle, WD_WAIT, NULL, NULL);
+  ::PostMessage(window_handle,
+                WD_WAIT,
+                NULL,
+                reinterpret_cast<LPARAM>(lpParameter));
   return 0;
 }

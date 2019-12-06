@@ -43,6 +43,8 @@ public:
    MESSAGE_HANDLER(WD_IS_BROWSER_READY, OnIsBrowserReady)
    MESSAGE_HANDLER(WD_REACQUIRE_BROWSER, OnReacquireBrowser)
    MESSAGE_HANDLER(WD_BROWSER_NEW_WINDOW, OnBrowserNewWindow)
+   MESSAGE_HANDLER(WD_NOTIFY_PENDING_NEW_WINDOW, OnPendingNewWindow)
+   MESSAGE_HANDLER(WD_NOTIFY_PENDING_REACQUIRE, OnPendingReacquire)
    MESSAGE_HANDLER(WD_QUIT, OnQuit)
  END_MSG_MAP()
 
@@ -74,6 +76,14 @@ public:
                             LPARAM lParam,
                             BOOL& bHandled);
  LRESULT OnBrowserNewWindow(UINT uMsg,
+                            WPARAM wParam,
+                            LPARAM lParam,
+                            BOOL& bHandled);
+ LRESULT OnPendingReacquire(UINT uMsg,
+                            WPARAM wParam,
+                            LPARAM lParam,
+                            BOOL& bHandled);
+ LRESULT OnPendingNewWindow(UINT uMsg,
                             WPARAM wParam,
                             LPARAM lParam,
                             BOOL& bHandled);
@@ -111,6 +121,7 @@ private:
   bool is_command_aborted_;
   bool is_explicit_close_requested_;
   bool is_ignoring_protected_mode_;
+  bool is_awaiting_window_sync_;
   std::string engine_path_;
   std::string command_;
   std::string response_;

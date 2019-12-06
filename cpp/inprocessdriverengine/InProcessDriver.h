@@ -29,6 +29,11 @@
 #include "InputState.h"
 
 #define BROWSER_EVENTS_ID   250
+#define UNINITIALIZED 0
+#define READY 1
+#define EXECUTING 2
+#define COMPLETE 3
+#define ABORTED 4
 
 namespace webdriver {
   class InProcessCommandRepository;
@@ -71,6 +76,7 @@ public:
     MESSAGE_HANDLER(WM_DESTROY, OnDestroy)
     MESSAGE_HANDLER(WD_INIT, OnInit)
     MESSAGE_HANDLER(WD_EXEC_COMMAND, OnExecuteCommand)
+    MESSAGE_HANDLER(WD_ABORT_COMMAND, OnAbortCommand)
     MESSAGE_HANDLER(WD_GET_RESPONSE_LENGTH, OnGetResponseLength)
     MESSAGE_HANDLER(WD_GET_RESPONSE, OnGetResponse)
     MESSAGE_HANDLER(WD_WAIT, OnWait)
@@ -123,6 +129,8 @@ public:
   LRESULT OnDestroy(UINT nMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
   LRESULT OnInit(UINT nMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
   LRESULT OnExecuteCommand(UINT nMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
+  LRESULT OnAbortCommand(UINT nMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
+  LRESULT OnGetCommandStatus(UINT nMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
   LRESULT OnGetResponseLength(UINT nMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
   LRESULT OnGetResponse(UINT nMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
   LRESULT OnWait(UINT nMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
@@ -160,17 +168,18 @@ public:
   HWND content_window(void) const { return this->content_window_; }
 
 private:
-  void CreateWaitThread(void);
+  void WriteDebug(const std::string& message);
+  void CreateWaitThread(const std::string& command_id);
   bool IsDocumentReady(void);
-  void SendProcessIdList(unsigned long notify_type);
 
   HWND notify_window_;
   HWND settings_window_;
   HWND top_level_window_;
   HWND tab_window_;
   HWND content_window_;
-  int command_id_;
   bool is_navigating_;
+  int command_status_;
+  std::string command_id_;
   std::string serialized_command_;
   std::string serialized_response_;
   webdriver::InProcessCommandRepository* command_handlers_;
