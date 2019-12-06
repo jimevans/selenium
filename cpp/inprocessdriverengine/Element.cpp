@@ -544,8 +544,7 @@ bool Element::IsObscured(LocationInfo* click_location,
       // Short circuit the use of elementsFromPoint if we don't
       // have to use it.
       return false;
-    }
-    else {
+    } else {
       // Short circuit in the case where this element is specifically
       // an "inline" element (<label>, <span>, <a>, at present),
       // and the top-most element as determined by elementFromPoint is
@@ -557,8 +556,6 @@ bool Element::IsObscured(LocationInfo* click_location,
       if (is_inline) {
         CComPtr<IHTMLElement> element_hit_parent;
         hr = element_hit->get_parentElement(&element_hit_parent);
-        CComBSTR element_hit_parent_tag;
-        element_hit_parent->get_tagName(&element_hit_parent_tag);
         if (SUCCEEDED(hr) && element_hit_parent) {
           if (this->element_.IsEqualObject(element_hit_parent)) {
             return false;
@@ -974,16 +971,24 @@ bool Element::IsLocationInViewPort(const LocationInfo& location,
 
 bool Element::CalculateClickPoint(const LocationInfo& location,
                                   LocationInfo* click_location) {
+  HRESULT hr = S_OK;
   bool is_location_in_view_port = true;
   RECT element_rect = location.AsRect();
+
+  // TODO: Handle error cases where QI fails. Should never happen,
+  // but will lead to crashes if it ever does.
   CComPtr<IHTMLDocument2> doc;
   this->GetContainingDocument(false, &doc);
+  CComPtr<IHTMLDocument3> doc_element_document;
+  hr = doc->QueryInterface<IHTMLDocument3>(&doc_element_document);
+  CComPtr<IHTMLElement> document_element;
+  hr = doc_element_document->get_documentElement(&document_element);
   CComPtr<IDisplayServices> display_services;
-  HRESULT hr = doc->QueryInterface<IDisplayServices>(&display_services);
+  hr = doc->QueryInterface<IDisplayServices>(&display_services);
   hr = display_services->TransformRect(&element_rect,
-                                       COORD_SYSTEM_FRAME,
+                                       COORD_SYSTEM_CONTENT,
                                        COORD_SYSTEM_GLOBAL,
-                                       nullptr);
+                                       document_element);
 
   long corrected_width = element_rect.right - element_rect.left;
   long corrected_height = element_rect.bottom - element_rect.top;
