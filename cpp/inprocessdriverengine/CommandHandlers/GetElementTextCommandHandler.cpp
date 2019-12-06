@@ -60,14 +60,15 @@ void GetElementTextCommandHandler::ExecuteInternal(
   ElementHandle element_wrapper;
   int status_code = element_repository->GetManagedElement(element_id,
                                                           &element_wrapper);
-  if (status_code == ENOSUCHELEMENT) {
+  if (status_code != WD_SUCCESS) {
+    if (status_code == ENOSUCHELEMENT) {
       response->SetErrorResponse(
           ERROR_NO_SUCH_ELEMENT,
           "Invalid internal element ID requested: " + element_id);
-      return;
-  } else if (status_code != WD_SUCCESS) {
-    response->SetErrorResponse(ERROR_STALE_ELEMENT_REFERENCE,
-                               "Element is no longer valid");
+    } else {
+      response->SetErrorResponse(status_code,
+                                 "Element is no longer valid");
+    }
     return;
   }
 
