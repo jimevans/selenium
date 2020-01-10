@@ -19,6 +19,7 @@
 #include <assert.h>
 #include <math.h>
 
+#include "../../utils/WindowUtilities.h"
 #include "../../webdriver-server/errorcodes.h"
 
 #include "../InputState.h"
@@ -39,9 +40,14 @@ int SendMessageActionSimulator::SimulateActions(ActionContext context,
                                                 InputState* input_state) {
   HWND window_handle = context.window_handle;
 
+  DWORD error_code = 0;
   DWORD browser_thread_id = ::GetWindowThreadProcessId(window_handle, NULL);
   DWORD current_thread_id = ::GetCurrentThreadId();
-  BOOL attached = ::AttachThreadInput(current_thread_id, browser_thread_id, TRUE);
+  BOOL attached = TRUE;
+  bool requires_attach = browser_thread_id != current_thread_id;
+  if (requires_attach) {
+    attached = ::AttachThreadInput(current_thread_id, browser_thread_id, TRUE);
+  }
 
   HKL layout = GetKeyboardLayout(browser_thread_id);
 
@@ -114,7 +120,10 @@ int SendMessageActionSimulator::SimulateActions(ActionContext context,
     }
     this->UpdateInputState(current_input, input_state);
   }
-  attached = ::AttachThreadInput(current_thread_id, browser_thread_id, FALSE);
+  if (requires_attach && attached) {
+    attached = ::AttachThreadInput(current_thread_id, browser_thread_id, FALSE);
+  }
+
   return WD_SUCCESS;
 }
 
@@ -155,30 +164,30 @@ void SendMessageActionSimulator::SendKeyDownMessage(HWND window_handle,
     (*keyboard_state)[key_code] |= 0x80;
 
     lparam = 1 | ::MapVirtualKeyEx(key_code, 0, layout) << 16;
-    if (!::SendMessage(window_handle, WM_KEYDOWN, key_code, lparam)) {
+    if (!::PostMessage(window_handle, WM_KEYDOWN, key_code, lparam)) {
       // LOG(WARN) << "Modifier keydown failed: " << ::GetLastError();
     }
 
-    //WindowUtilities::Wait(0);
+    WindowUtilities::Wait(0);
     return;
   }
 
   if (unicode) {
     wchar_t c = static_cast<wchar_t>(scan_code);
     SHORT keyscan = VkKeyScanW(c);
-    ::SendMessage(window_handle, WM_KEYDOWN, keyscan, lparam);
-    ::SendMessage(window_handle, WM_CHAR, c, lparam);
+    ::PostMessage(window_handle, WM_KEYDOWN, keyscan, lparam);
+    ::PostMessage(window_handle, WM_CHAR, c, lparam);
   } else {
     key_code = LOBYTE(key_code);
     (*keyboard_state)[key_code] |= 0x80;
-    ::SetKeyboardState(&((*keyboard_state)[0]));
+    BOOL set = ::SetKeyboardState(&((*keyboard_state)[0]));
     
     lparam = 1 | scan_code << 16;
     if (extended) {
       lparam |= 1 << 24;
     }
 
-    if (!::SendMessage(window_handle, WM_KEYDOWN, key_code, lparam)) {
+    if (!::PostMessage(window_handle, WM_KEYDOWN, key_code, lparam)) {
       // LOG(WARN) << "Key down failed: " << ::GetLastError();
     }
   }
@@ -199,10 +208,11 @@ void SendMessageActionSimulator::SendKeyUpMessage(HWND window_handle,
 
     lparam = 1 | ::MapVirtualKeyEx(key_code, 0, layout) << 16;
     lparam |= 0x3 << 30;
-    if (!::SendMessage(window_handle, WM_KEYUP, key_code, lparam)) {
+    if (!::PostMessage(window_handle, WM_KEYUP, key_code, lparam)) {
       // LOG(WARN) << "Modifier keyup failed: " << ::GetLastError();
     }
 
+    WindowUtilities::Wait(0);
     return;
   }
 
@@ -287,7 +297,7 @@ void SendMessageActionSimulator::SendMouseDownMessage(HWND window_handle,
   button_value |= modifier;
   LPARAM coordinates = MAKELPARAM(x, y);
 
-  ::SendMessage(window_handle, msg, button_value, coordinates);
+  ::PostMessage(window_handle, msg, button_value, coordinates);
 
   // This 5 millisecond sleep is important for the click element scenario,
   // as it allows the element to register and respond to the focus event. 
@@ -316,8 +326,8 @@ void SendMessageActionSimulator::SendMouseUpMessage(HWND window_handle,
   button_value |= modifier;
   LPARAM coordinates = MAKELPARAM(x, y);
   // To properly mimic manual mouse movement, we need a move before the up.
-  ::SendMessage(window_handle, WM_MOUSEMOVE, modifier, coordinates);
-  ::SendMessage(window_handle, msg, button_value, coordinates);
+  ::PostMessage(window_handle, WM_MOUSEMOVE, modifier, coordinates);
+  ::PostMessage(window_handle, msg, button_value, coordinates);
 }
 
 } // namespace webdriver

@@ -419,7 +419,9 @@ bool Element::GetClickableLocationNoScroll(LocationInfo* click_location) {
   return this->GetClickableLocation(false, click_location);
 }
 
-bool Element::GetClickableLocation(const bool scroll_if_needed, LocationInfo* click_location) {
+bool Element::GetClickableLocation(const bool scroll_if_needed,
+                                   LocationInfo* click_location) {
+  HRESULT hr = S_OK;
   LocationInfo element_location = {};
   bool location_result = this->GetLocationInDocument(&element_location);
 
@@ -435,7 +437,9 @@ bool Element::GetClickableLocation(const bool scroll_if_needed, LocationInfo* cl
     return false;
   }
 
-  bool is_calculated = this->CalculateClickPoint(element_location, click_location);
+  bool is_calculated = this->CalculateClickPoint(element_location,
+                                                 true,
+                                                 click_location);
   if (!scroll_if_needed) {
     return is_calculated;
   }
@@ -446,7 +450,7 @@ bool Element::GetClickableLocation(const bool scroll_if_needed, LocationInfo* cl
       overflow_state == "scroll" ||
       !is_location_in_view_port) {
     CComVariant scroll_behavior(false);
-    HRESULT hr = this->element_->scrollIntoView(scroll_behavior);
+    hr = this->element_->scrollIntoView(scroll_behavior);
     if (FAILED(hr)) {
       //LOGHR(WARN, hr) << "Cannot scroll element into view, IHTMLElement::scrollIntoView failed";
       //return EOBSOLETEELEMENT;
@@ -463,7 +467,7 @@ bool Element::GetClickableLocation(const bool scroll_if_needed, LocationInfo* cl
       return result;
     }
 
-    this->CalculateClickPoint(element_location, click_location);
+    this->CalculateClickPoint(element_location, true, click_location);
     if (!this->IsLocationInViewPort(*click_location)) {
       //LOG(WARN) << "Scrolled element is not in view";
       //status_code = EELEMENTCLICKPOINTNOTSCROLLED;
@@ -529,7 +533,7 @@ bool Element::IsObscured(LocationInfo* click_location,
   // of its own document, even if it's not in the top-level document.
   LocationInfo element_location = {};
   int status_code = this->GetLocationInDocument(&element_location);
-  this->CalculateClickPoint(element_location, click_location);
+  this->CalculateClickPoint(element_location, false, click_location);
   long x = click_location->x;
   long y = click_location->y;
 
@@ -970,25 +974,28 @@ bool Element::IsLocationInViewPort(const LocationInfo& location,
 }
 
 bool Element::CalculateClickPoint(const LocationInfo& location,
+                                  const bool translate_frames,
                                   LocationInfo* click_location) {
   HRESULT hr = S_OK;
   bool is_location_in_view_port = true;
   RECT element_rect = location.AsRect();
 
-  // TODO: Handle error cases where QI fails. Should never happen,
-  // but will lead to crashes if it ever does.
-  CComPtr<IHTMLDocument2> doc;
-  this->GetContainingDocument(false, &doc);
-  CComPtr<IHTMLDocument3> doc_element_document;
-  hr = doc->QueryInterface<IHTMLDocument3>(&doc_element_document);
-  CComPtr<IHTMLElement> document_element;
-  hr = doc_element_document->get_documentElement(&document_element);
-  CComPtr<IDisplayServices> display_services;
-  hr = doc->QueryInterface<IDisplayServices>(&display_services);
-  hr = display_services->TransformRect(&element_rect,
-                                       COORD_SYSTEM_CONTENT,
-                                       COORD_SYSTEM_GLOBAL,
-                                       document_element);
+  if (translate_frames) {
+    // TODO: Handle error cases where QI fails. Should never happen,
+    // but will lead to crashes if it ever does.
+    CComPtr<IHTMLDocument2> doc;
+    this->GetContainingDocument(false, &doc);
+    CComPtr<IHTMLDocument3> doc_element_document;
+    hr = doc->QueryInterface<IHTMLDocument3>(&doc_element_document);
+    CComPtr<IHTMLElement> document_element;
+    hr = doc_element_document->get_documentElement(&document_element);
+    CComPtr<IDisplayServices> display_services;
+    hr = doc->QueryInterface<IDisplayServices>(&display_services);
+    hr = display_services->TransformRect(&element_rect,
+                                         COORD_SYSTEM_CONTENT,
+                                         COORD_SYSTEM_GLOBAL,
+                                         document_element);
+  }
 
   long corrected_width = element_rect.right - element_rect.left;
   long corrected_height = element_rect.bottom - element_rect.top;
@@ -1139,7 +1146,7 @@ bool Element::GetLocationInDocument(LocationInfo* current_location) {
                 // IE returns absolute positions in the page, rather than
                 // frame- and scroll-bound positions, for clientRects
                 // (as opposed to boundingClientRects).
-                has_absolute_position_ready_to_return = true;
+                //has_absolute_position_ready_to_return = true;
                 break;
               }
             }
@@ -1207,8 +1214,18 @@ bool Element::GetLocationInDocument(LocationInfo* current_location) {
 
   if (!has_absolute_position_ready_to_return) {
     long scroll_left, scroll_top = 0;
-    bounding_rect_element->get_scrollLeft(&scroll_left);
-    bounding_rect_element->get_scrollTop(&scroll_top);
+    //bounding_rect_element->get_scrollLeft(&scroll_left);
+    //bounding_rect_element->get_scrollTop(&scroll_top);
+    CComPtr<IHTMLDocument2> current_doc;
+    this->GetContainingDocument(false, &current_doc);
+
+    CComPtr<IHTMLWindow2> current_window;
+    hr = current_doc->get_parentWindow(&current_window);
+
+    CComPtr<IHTMLWindow7> scroll_window;
+    hr = current_window->QueryInterface<IHTMLWindow7>(&scroll_window);
+    hr = scroll_window->get_pageXOffset(&scroll_left);
+    hr = scroll_window->get_pageYOffset(&scroll_top);
     left += scroll_left;
     top += scroll_top;
   }

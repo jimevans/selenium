@@ -38,6 +38,7 @@ class ElementRepository;
 struct InputContext {
   IHTMLDocument2* document;
   HWND window_handle;
+  HWND top_level_window;
 };
 
 struct InputManagerSettings {

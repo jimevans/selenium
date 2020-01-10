@@ -76,11 +76,7 @@ void FindElementCommandHandler::ExecuteInternal(
     return;
   }
 
-  int timeout = 0;
-  ::SendMessage(executor.settings_window_handle(),
-                WD_GET_SESSION_SETTING,
-                static_cast<WPARAM>(SESSION_SETTING_IMPLICIT_WAIT_TIMEOUT),
-                reinterpret_cast<LPARAM>(&timeout));
+  long timeout = static_cast<long>(executor.implicit_wait_timeout());
 
   CComPtr<IHTMLDocument2> doc;
   int status_code = executor.GetFocusedDocument(&doc);

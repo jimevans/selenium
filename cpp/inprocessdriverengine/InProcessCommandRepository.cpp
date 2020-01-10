@@ -25,12 +25,15 @@
 #include "CommandHandlers/FindElementCommandHandler.h"
 #include "CommandHandlers/FindElementsCommandHandler.h"
 #include "CommandHandlers/GetCurrentUrlCommandHandler.h"
+#include "CommandHandlers/GetElementRectCommandHandler.h"
 #include "CommandHandlers/GetElementTextCommandHandler.h"
+#include "CommandHandlers/GetPageSourceCommandHandler.h"
 #include "CommandHandlers/GetTitleCommandHandler.h"
 #include "CommandHandlers/GoBackCommandHandler.h"
 #include "CommandHandlers/GoForwardCommandHandler.h"
 #include "CommandHandlers/GoToUrlCommandHandler.h"
 #include "CommandHandlers/IsElementSelectedCommandHandler.h"
+#include "CommandHandlers/SendKeysCommandHandler.h"
 #include "CommandHandlers/SwitchToFrameCommandHandler.h"
 #include "CommandHandlers/SwitchToParentFrameCommandHandler.h"
 #include "InProcessCommandHandler.h"
@@ -70,6 +73,7 @@ void InProcessCommandRepository::PopulateCommandHandlers() {
   this->command_handlers_[webdriver::CommandType::GoBack] = CommandHandlerHandle(new GoBackCommandHandler);
   this->command_handlers_[webdriver::CommandType::GoForward] = CommandHandlerHandle(new GoForwardCommandHandler);
   this->command_handlers_[webdriver::CommandType::GetTitle] = CommandHandlerHandle(new GetTitleCommandHandler);
+  this->command_handlers_[webdriver::CommandType::GetPageSource] = CommandHandlerHandle(new GetPageSourceCommandHandler);
   this->command_handlers_[webdriver::CommandType::GetCurrentUrl] = CommandHandlerHandle(new GetCurrentUrlCommandHandler);
   this->command_handlers_[webdriver::CommandType::ExecuteScript] = CommandHandlerHandle(new ExecuteScriptCommandHandler);
   this->command_handlers_[webdriver::CommandType::FindElement] = CommandHandlerHandle(new FindElementCommandHandler);
@@ -77,7 +81,9 @@ void InProcessCommandRepository::PopulateCommandHandlers() {
   this->command_handlers_[webdriver::CommandType::FindChildElement] = CommandHandlerHandle(new FindChildElementCommandHandler);
   this->command_handlers_[webdriver::CommandType::FindChildElements] = CommandHandlerHandle(new FindChildElementsCommandHandler);
   this->command_handlers_[webdriver::CommandType::ClickElement] = CommandHandlerHandle(new ClickElementCommandHandler);
+  this->command_handlers_[webdriver::CommandType::SendKeysToElement] = CommandHandlerHandle(new SendKeysCommandHandler);
   this->command_handlers_[webdriver::CommandType::IsElementSelected] = CommandHandlerHandle(new IsElementSelectedCommandHandler);
+  this->command_handlers_[webdriver::CommandType::GetElementRect] = CommandHandlerHandle(new GetElementRectCommandHandler);
   this->command_handlers_[webdriver::CommandType::GetElementText] = CommandHandlerHandle(new GetElementTextCommandHandler);
   this->command_handlers_[webdriver::CommandType::SwitchToFrame] = CommandHandlerHandle(new SwitchToFrameCommandHandler);
   this->command_handlers_[webdriver::CommandType::SwitchToParentFrame] = CommandHandlerHandle(new SwitchToParentFrameCommandHandler);

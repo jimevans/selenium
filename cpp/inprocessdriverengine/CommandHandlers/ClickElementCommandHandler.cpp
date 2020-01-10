@@ -176,6 +176,7 @@ void ClickElementCommandHandler::ExecuteInternal(
       InputContext context;
       context.document = doc;
       context.window_handle = executor.content_window();
+      context.top_level_window = executor.top_level_window();
       status_code =
           mutable_executor.input_manager()->PerformInputSequence(context,
                                                                  actions,

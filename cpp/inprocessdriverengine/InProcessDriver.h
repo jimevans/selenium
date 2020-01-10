@@ -143,7 +143,23 @@ public:
   int SetFocusedFrameByElement(IHTMLElement* frame_element);
   void SetFocusedFrameToParent(void);
 
-  HWND settings_window_handle(void) const { return this->settings_window_; }
+  unsigned long long page_load_timeout(void) const {
+    return this->page_load_timeout_;
+  }
+
+  unsigned long long script_timeout(void) const {
+    return this->script_timeout_;
+  }
+
+  unsigned long long implicit_wait_timeout(void) const {
+    return this->implicit_wait_timeout_;
+  }
+
+  bool use_strict_file_interactability(void) const {
+    return this->use_strict_file_interactability_;
+  }
+
+  HWND notify_window_handle(void) const { return this->notify_window_; }
 
   IWebBrowser2* browser(void) const { return this->browser_; }
 
@@ -171,17 +187,23 @@ private:
   void WriteDebug(const std::string& message);
   void CreateWaitThread(const std::string& command_id);
   bool IsDocumentReady(void);
+  void UpdateSettings(const std::string& settings_json);
 
   HWND notify_window_;
-  HWND settings_window_;
   HWND top_level_window_;
   HWND tab_window_;
   HWND content_window_;
   bool is_navigating_;
+  bool use_strict_file_interactability_;
   int command_status_;
+  unsigned long long implicit_wait_timeout_;
+  unsigned long long script_timeout_;
+  unsigned long long page_load_timeout_;
   std::string command_id_;
   std::string serialized_command_;
   std::string serialized_response_;
+  std::string page_load_strategy_;
+
   webdriver::InProcessCommandRepository* command_handlers_;
   webdriver::ElementRepository* known_element_repository_;
   webdriver::ElementFinder* element_finder_;

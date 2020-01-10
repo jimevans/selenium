@@ -60,6 +60,7 @@ class IESession : public Session {
   bool IsInstance(const std::string& instance_id) const;
   void CloseInstance(const std::string& instance_id,
                      HWND* alert_handle) const;
+  void UpdateInstanceSettings(void) const;
 
   bool IsAlertActive(const HWND content_window_handle,
                      HWND* alert_handle) const;
@@ -103,6 +104,7 @@ private:
   int port_;
   int browser_attach_timeout_;
   bool is_valid_;
+  bool is_pending_file_selection_;
   clock_t command_timeout_;
   std::string session_id_;
   std::string current_instance_id_;

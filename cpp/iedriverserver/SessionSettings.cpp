@@ -16,6 +16,7 @@
 
 #include "SessionSettings.h"
 
+#include "json.h"
 #include "../utils/WebDriverConstants.h"
 
 #define THREAD_WAIT_TIMEOUT 1000
@@ -35,7 +36,9 @@ SessionSettings::SessionSettings() :
     browser_attach_timeout_(0),
     action_simulator_type_(SEND_MESSAGE_ACTION_SIMULATOR),
     use_strict_file_interactability_(false),
+    use_legacy_file_dialog_handling_(false),
     implicit_wait_timeout_(0),
+    file_dialog_timeout_(DEFAULT_FILE_UPLOAD_DIALOG_TIMEOUT_IN_MILLISECONDS),
     script_timeout_(DEFAULT_SCRIPT_TIMEOUT_IN_MILLISECONDS),
     page_load_timeout_(DEFAULT_PAGE_LOAD_TIMEOUT_IN_MILLISECONDS),
     page_load_strategy_(NORMAL_PAGE_LOAD_STRATEGY),
@@ -96,6 +99,18 @@ LRESULT SessionSettings::OnGetSessionSetting(UINT uMsg,
     case SESSION_SETTING_ACTION_SIMULATOR_TYPE: {
       int* action_simulator_type = reinterpret_cast<int*>(lParam);
       *action_simulator_type = this->action_simulator_type_;
+      break;
+    }
+    case SESSION_SETTING_FILE_DIALOG_TIMEOUT: {
+      int* file_dialog_timeout = reinterpret_cast<int*>(lParam);
+      *file_dialog_timeout = this->file_dialog_timeout_;
+      break;
+    }
+    case SESSION_SETTING_USE_LEGACY_FILE_DIALOG_HANDLING: {
+      bool* use_legacy_file_dialog_handling =
+          reinterpret_cast<bool*>(lParam);
+      *use_legacy_file_dialog_handling =
+          this->use_legacy_file_dialog_handling_;
       break;
     }
     default: {
@@ -159,11 +174,53 @@ LRESULT SessionSettings::OnSetSessionSetting(UINT uMsg,
       this->action_simulator_type_ = *action_simulator_type;
       break;
     }
+    case SESSION_SETTING_FILE_DIALOG_TIMEOUT: {
+      int* file_dialog_timeout = reinterpret_cast<int*>(lParam);
+      this->file_dialog_timeout_ = *file_dialog_timeout ;
+      break;
+    }
+    case SESSION_SETTING_USE_LEGACY_FILE_DIALOG_HANDLING: {
+      bool* use_legacy_file_dialog_handling =
+          reinterpret_cast<bool*>(lParam);
+      this->use_legacy_file_dialog_handling_ =
+          *use_legacy_file_dialog_handling;
+      break;
+    }
     default: {
       break;
     }
   }
   return 0;
+}
+
+LRESULT SessionSettings::OnSerializeSessionSettings(UINT uMsg,
+                                                    WPARAM wParam,
+                                                    LPARAM lParam,
+                                                    BOOL& bHandled) {
+  bool timeouts_only = static_cast<bool>(wParam);
+  std::string* serialized_settings = reinterpret_cast<std::string*>(lParam);
+  *serialized_settings = this->SerializeInProcessSettings(timeouts_only);
+  return 0;
+}
+
+std::string SessionSettings::SerializeInProcessSettings(
+    const bool timeouts_only) const {
+  Json::Value in_process_settings(Json::objectValue);
+  if (!timeouts_only) {
+    in_process_settings[PAGE_LOAD_STRATEGY_CAPABILITY] = this->page_load_strategy_;
+    in_process_settings[STRICT_FILE_INTERACTABILITY_CAPABILITY] =
+        this->use_strict_file_interactability_;
+  }
+
+  Json::Value timeouts(Json::objectValue);
+  timeouts[IMPLICIT_WAIT_TIMEOUT_NAME] = this->implicit_wait_timeout_;
+  timeouts[SCRIPT_TIMEOUT_NAME] = this->script_timeout_;
+  timeouts[PAGE_LOAD_TIMEOUT_NAME] = this->page_load_timeout_;
+
+  in_process_settings[TIMEOUTS_CAPABILITY] = timeouts;
+  Json::StreamWriterBuilder writer;
+  std::string output(Json::writeString(writer, in_process_settings));
+  return output;
 }
 
 HWND SessionSettings::CreateInstance() {
@@ -199,14 +256,18 @@ unsigned int WINAPI SessionSettings::ThreadProc(LPVOID lpParameter) {
 
   DWORD error = 0;
   SessionSettings session_settings;
-  session_settings.Create(HWND_MESSAGE);
+  HWND window_handle = session_settings.Create(HWND_MESSAGE);
+  BOOL allow = ::ChangeWindowMessageFilterEx(window_handle,
+                                             WD_GET_SESSION_SETTING,
+                                             MSGFLT_ALLOW,
+                                             NULL);
 
   MSG msg;
   ::PeekMessage(&msg, NULL, WM_USER, WM_USER, PM_NOREMOVE);
 
   // Return the HWND back through lpParameter, and signal that the
   // window is ready for messages.
-  thread_context->session_settings_window_handle = session_settings.m_hWnd;
+  thread_context->session_settings_window_handle = window_handle;
 
   if (thread_context->sync_event != NULL) {
     ::SetEvent(thread_context->sync_event);

@@ -96,6 +96,9 @@
     <ClCompile Include="CommandHandlers\GetTimeoutsCommandHandler.cpp">
       <Filter>Source Files\CommandHandlers</Filter>
     </ClCompile>
+    <ClCompile Include="FileSelectionDialog.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CommandLineArguments.h">
@@ -184,6 +187,9 @@
     </ClInclude>
     <ClInclude Include="CommandHandlers\stdafx.h">
       <Filter>Header Files\CommandHandlers</Filter>
+    </ClInclude>
+    <ClInclude Include="FileSelectionDialog.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

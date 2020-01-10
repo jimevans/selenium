@@ -41,6 +41,7 @@ namespace webdriver {
   IESession::IESession() : port_(0),
                            session_id_(""),
                            is_valid_(false),
+                           is_pending_file_selection_(false),
                            command_timeout_(0),
                            current_instance_id_(""),
                            factory_(nullptr),
@@ -213,6 +214,35 @@ bool IESession::IsInstance(const std::string& instance_id) const {
   return is_instance != 0;
 }
 
+void IESession::UpdateInstanceSettings() const {
+  std::string serialized_settings;
+  ::SendMessage(this->session_settings_window_handle_,
+                WD_SERIALIZE_SESSION_SETTINGS,
+                static_cast<WPARAM>(true),
+                reinterpret_cast<LPARAM>(&serialized_settings));
+
+  std::vector<char> settings_buffer;
+  StringUtilities::ToBuffer(serialized_settings, &settings_buffer);
+  COPYDATASTRUCT copy_data;
+  copy_data.dwData = COPYDATA_UPDATE_SETTINGS;
+  copy_data.cbData = settings_buffer.size();
+  copy_data.lpData = &settings_buffer[0];
+
+  std::vector<std::string> instance_id_list;
+  this->GetInstanceIdList(&instance_id_list);
+  std::vector<std::string>::const_iterator it = instance_id_list.begin();
+  for (;
+       it != instance_id_list.end();
+       ++it) {
+    BrowserInfo instance_info;
+    this->GetInstance(*it, &instance_info);
+    ::SendMessage(instance_info.in_proc_executor_window_handle,
+                  WM_COPYDATA,
+                  NULL,
+                  reinterpret_cast<LPARAM>(&copy_data));
+  }
+}
+
 bool IESession::IsAlertActive(const HWND content_window_handle,
                               HWND* alert_handle) const {
   DWORD process_id = 0;
@@ -342,7 +372,12 @@ bool IESession::DispatchInProcessCommand(const std::string& serialized_command,
                                             content_window_handle,
                                             &alert_handle);
   if (is_command_complete) {
-    this->GetInProcessCommandResult(host_window_handle, serialized_response);
+    if (this->is_pending_file_selection_) {
+      // TODO: Handle file selection dialog
+      this->is_pending_file_selection_ = false;
+    } else {
+      this->GetInProcessCommandResult(host_window_handle, serialized_response);
+    }
   } else {
     Response timeout_response;
     timeout_response.SetErrorResponse(ETIMEOUT, "Timed out executing command");

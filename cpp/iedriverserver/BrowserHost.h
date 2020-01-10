@@ -45,6 +45,7 @@ public:
    MESSAGE_HANDLER(WD_BROWSER_NEW_WINDOW, OnBrowserNewWindow)
    MESSAGE_HANDLER(WD_NOTIFY_PENDING_NEW_WINDOW, OnPendingNewWindow)
    MESSAGE_HANDLER(WD_NOTIFY_PENDING_REACQUIRE, OnPendingReacquire)
+   MESSAGE_HANDLER(WD_NOTIFY_PENDING_FILE_SELECTION, OnPendingFileSelection)
    MESSAGE_HANDLER(WD_QUIT, OnQuit)
  END_MSG_MAP()
 
@@ -87,6 +88,10 @@ public:
                             WPARAM wParam,
                             LPARAM lParam,
                             BOOL& bHandled);
+ LRESULT OnPendingFileSelection(UINT uMsg,
+                                WPARAM wParam,
+                                LPARAM lParam,
+                                BOOL& bHandled);
 
  static std::string CreateInstance(const DWORD process_id,
                                    const HWND session_window_handle,

@@ -84,11 +84,17 @@ BrowserHost::BrowserHost() : top_level_window_handle_(NULL),
                                         WD_NOTIFY_PENDING_REACQUIRE,
                                         MSGFLT_ALLOW,
                                         NULL);
+  allow = ::ChangeWindowMessageFilterEx(window_handle,
+                                        WD_NOTIFY_PENDING_FILE_SELECTION,
+                                        MSGFLT_ALLOW,
+                                        NULL);
 }
 
 bool BrowserHost::Initialize(const DWORD process_id,
                              const HWND notify_window_handle,
                              const HWND settings_window_handle) {
+  this->notify_window_handle_ = notify_window_handle;
+  this->settings_window_handle_ = settings_window_handle;
   HWND document_handle = NULL;
   bool is_initialized = this->IsBrowserProcessInitialized(process_id,
                                                           &document_handle);
@@ -128,8 +134,6 @@ bool BrowserHost::Initialize(const DWORD process_id,
 
   hr = this->browser_->get_HWND(
       reinterpret_cast<SHANDLE_PTR*>(&this->top_level_window_handle_));
-  this->notify_window_handle_ = notify_window_handle;
-  this->settings_window_handle_ = settings_window_handle;
   return true;
 }
 
@@ -177,6 +181,7 @@ LRESULT BrowserHost::OnPendingNewWindow(UINT nMsg,
                                         LPARAM lParam,
                                         BOOL& bHandled) {
   this->is_awaiting_window_sync_ = true;
+  this->known_process_ids_.clear();
   webdriver::WindowUtilities::GetProcessesByName(IE_PROCESS_NAME,
                                                  &this->known_process_ids_);
   this->PostMessageToSelf(WD_BROWSER_NEW_WINDOW);
@@ -188,9 +193,22 @@ LRESULT BrowserHost::OnPendingReacquire(UINT nMsg,
                                         LPARAM lParam,
                                         BOOL& bHandled) {
   this->is_awaiting_window_sync_ = true;
+  this->known_process_ids_.clear();
   webdriver::WindowUtilities::GetProcessesByName(IE_PROCESS_NAME,
                                                  &this->known_process_ids_);
   this->PostMessageToSelf(WD_REACQUIRE_BROWSER);
+  return 0;
+}
+
+LRESULT BrowserHost::OnPendingFileSelection(UINT nMsg,
+                                            WPARAM wParam,
+                                            LPARAM lParam,
+                                            BOOL& bHandled) {
+  // TODO: Forward the file parameters.
+  ::SendMessage(this->notify_window_handle_,
+                WD_NOTIFY_PENDING_FILE_SELECTION,
+                NULL,
+                NULL);
   return 0;
 }
 
@@ -226,6 +244,7 @@ LRESULT BrowserHost::OnExecCommand(UINT uMsg,
   command_buffer[command_buffer.size() - 1] = '\0';
 
   COPYDATASTRUCT copy_data;
+  copy_data.dwData = COPYDATA_COMMAND;
   copy_data.lpData = reinterpret_cast<void*>(&command_buffer[0]);
   copy_data.cbData = static_cast<DWORD>(command_buffer.size());
   ::SendMessage(this->in_proc_executor_handle_,
@@ -518,10 +537,34 @@ HRESULT BrowserHost::StartDiagnosticsMode(IHTMLDocument2* document) {
 
   hr = window->GetWindow(&this->in_proc_executor_handle_);
   FAIL_IF_NOT_S_OK(hr);
+  int action_simulator_type = SEND_MESSAGE_ACTION_SIMULATOR;
+  ::SendMessage(this->settings_window_handle_,
+                WD_GET_SESSION_SETTING,
+                SESSION_SETTING_ACTION_SIMULATOR_TYPE,
+                reinterpret_cast<LPARAM>(&action_simulator_type));
+
+  std::string serialized_settings;
+  ::SendMessage(this->settings_window_handle_,
+                WD_SERIALIZE_SESSION_SETTINGS,
+                static_cast<WPARAM>(false),
+                reinterpret_cast<LPARAM>(&serialized_settings));
+
+  std::vector<char> settings_buffer;
+  StringUtilities::ToBuffer(serialized_settings, &settings_buffer);
+
   ::SendMessage(this->in_proc_executor_handle_,
                 WD_INIT,
-                reinterpret_cast<WPARAM>(this->settings_window_handle_),
+                static_cast<WPARAM>(action_simulator_type),
                 reinterpret_cast<LPARAM>(this->m_hWnd));
+
+  COPYDATASTRUCT copy_data;
+  copy_data.dwData = COPYDATA_UPDATE_SETTINGS;
+  copy_data.cbData = settings_buffer.size();
+  copy_data.lpData = &settings_buffer[0];
+  ::SendMessage(this->in_proc_executor_handle_,
+                WM_COPYDATA,
+                NULL,
+                reinterpret_cast<LPARAM>(&copy_data));
   return hr;
 }
 

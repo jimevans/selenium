@@ -52,14 +52,18 @@ struct ProcessIdThreadContext {
   DWORD* process_id_list;
 };
 
-InProcessDriver::InProcessDriver() : settings_window_(NULL),
-                                     notify_window_(NULL),
+InProcessDriver::InProcessDriver() : notify_window_(NULL),
                                      top_level_window_(NULL),
                                      tab_window_(NULL),
                                      content_window_(NULL),
                                      command_id_(""),
                                      command_status_(UNINITIALIZED),
                                      is_navigating_(false),
+                                     use_strict_file_interactability_(false),
+                                     page_load_timeout_(0),
+                                     script_timeout_(0),
+                                     implicit_wait_timeout_(0),
+                                     page_load_strategy_(""),
                                      serialized_command_(""),
                                      serialized_response_(""),
                                      focused_frame_(nullptr) {
@@ -216,6 +220,10 @@ LRESULT InProcessDriver::OnCopyData(UINT nMsg,
   memcpy_s(&buffer[0], data->cbData, data->lpData, data->cbData);
   buffer[buffer.size() - 1] = '\0';
   std::string received_data(&buffer[0]);
+  if (data->dwData == COPYDATA_UPDATE_SETTINGS) {
+    this->UpdateSettings(received_data);
+    return 0;
+  }
 
   this->command_id_ = webdriver::StringUtilities::CreateGuid();
   this->serialized_command_ = received_data;
@@ -246,13 +254,8 @@ LRESULT InProcessDriver::OnInit(UINT nMsg,
                                 LPARAM lParam,
                                 BOOL& handled) {
   this->notify_window_ = reinterpret_cast<HWND>(lParam);
-  this->settings_window_ = reinterpret_cast<HWND>(wParam);
-  int action_simulator_type = 0;
-  ::SendMessage(this->settings_window_,
-                WD_GET_SESSION_SETTING,
-                SESSION_SETTING_ACTION_SIMULATOR_TYPE,
-                reinterpret_cast<LPARAM>(&action_simulator_type));
-
+  int action_simulator_type = static_cast<int>(wParam);
+  
   webdriver::InputManagerSettings settings;
   settings.element_repository = this->known_element_repository_;
   settings.action_simulator_type = action_simulator_type;
@@ -538,15 +541,7 @@ bool InProcessDriver::IsDocumentReady() {
     return false;
   }
 
-  // CONSIDER: This is set at session creation time, and
-  // does not change throughout the session lifetime. Should
-  // we perform this lookup once?
-  std::string page_load_strategy = "";
-  ::SendMessage(this->settings_window_,
-                WD_GET_SESSION_SETTING,
-                SESSION_SETTING_PAGE_LOAD_STRATEGY,
-                reinterpret_cast<LPARAM>(&page_load_strategy));
-  if (page_load_strategy == NONE_PAGE_LOAD_STRATEGY) {
+  if (this->page_load_strategy_ == NONE_PAGE_LOAD_STRATEGY) {
     return true;
   }
 
@@ -569,11 +564,45 @@ bool InProcessDriver::IsDocumentReady() {
     return false;
   }
 
-  if (page_load_strategy == EAGER_PAGE_LOAD_STRATEGY) {
+  if (this->page_load_strategy_ == EAGER_PAGE_LOAD_STRATEGY) {
     return ready_state_bstr == INTERACTIVE_READY_STATE;
   }
 
   return ready_state_bstr == COMPLETE_READY_STATE;
+}
+
+void InProcessDriver::UpdateSettings(const std::string& settings_json) {
+  Json::Value settings;
+  std::string parse_errors;
+  std::stringstream json_stream;
+  json_stream.str(settings_json);
+  Json::parseFromStream(Json::CharReaderBuilder(),
+                        json_stream,
+                        &settings,
+                        &parse_errors);
+  if (settings.isMember(PAGE_LOAD_STRATEGY_CAPABILITY)) {
+    this->page_load_strategy_ =
+        settings[PAGE_LOAD_STRATEGY_CAPABILITY].asString();
+  }
+
+  if (settings.isMember(STRICT_FILE_INTERACTABILITY_CAPABILITY)) {
+    this->use_strict_file_interactability_ =
+        settings[STRICT_FILE_INTERACTABILITY_CAPABILITY].asBool();
+  }
+
+  if (settings.isMember(TIMEOUTS_CAPABILITY)) {
+    Json::Value timeouts = settings[TIMEOUTS_CAPABILITY];
+    if (timeouts.isMember(IMPLICIT_WAIT_TIMEOUT_NAME)) {
+      this->implicit_wait_timeout_ =
+          timeouts[IMPLICIT_WAIT_TIMEOUT_NAME].asUInt64();
+    }
+    if (timeouts.isMember(PAGE_LOAD_TIMEOUT_NAME)) {
+      this->page_load_timeout_ = timeouts[PAGE_LOAD_TIMEOUT_NAME].asUInt64();
+    }
+    if (timeouts.isMember(SCRIPT_TIMEOUT_NAME)) {
+      this->script_timeout_ = timeouts[SCRIPT_TIMEOUT_NAME].asUInt64();
+    }
+  }
 }
 
 void InProcessDriver::CreateWaitThread(const std::string& command_id) {

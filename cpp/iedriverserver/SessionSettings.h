@@ -33,6 +33,7 @@ public:
   BEGIN_MSG_MAP(SessionSettings)
     MESSAGE_HANDLER(WD_GET_SESSION_SETTING, OnGetSessionSetting)
     MESSAGE_HANDLER(WD_SET_SESSION_SETTING, OnSetSessionSetting)
+    MESSAGE_HANDLER(WD_SERIALIZE_SESSION_SETTINGS, OnSerializeSessionSettings)
   END_MSG_MAP()
 
   LRESULT OnGetSessionSetting(UINT uMsg,
@@ -44,6 +45,12 @@ public:
                               WPARAM wParam,
                               LPARAM lParam,
                               BOOL& bHandled);
+
+  LRESULT OnSerializeSessionSettings(UINT uMsg,
+                                     WPARAM wParam,
+                                     LPARAM lParam,
+                                     BOOL& bHandled);
+
 
   unsigned long long implicit_wait_timeout(void) const {
     return this->implicit_wait_timeout_;
@@ -93,9 +100,13 @@ public:
   static unsigned int WINAPI ThreadProc(LPVOID lpParameter);
 
 private:
+  std::string SerializeInProcessSettings(const bool timeouts_only) const;
+
   int browser_attach_timeout_;
+  int file_dialog_timeout_;
   int action_simulator_type_;
   bool use_strict_file_interactability_;
+  bool use_legacy_file_dialog_handling_;
   long long implicit_wait_timeout_;
   long long script_timeout_;
   long long page_load_timeout_;

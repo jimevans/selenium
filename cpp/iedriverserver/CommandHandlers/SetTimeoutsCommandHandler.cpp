@@ -70,6 +70,7 @@ void SetTimeoutsCommandHandler::ExecuteInternal(
                   WD_SET_SESSION_SETTING,
                   setting_type,
                   reinterpret_cast<LPARAM>(&timeout));
+    executor.UpdateInstanceSettings();
   }
 }
 

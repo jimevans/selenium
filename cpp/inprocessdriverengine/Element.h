@@ -67,6 +67,7 @@ private:
 
   bool GetClickableLocation(const bool scroll_if_needed, LocationInfo* click_location);
   bool CalculateClickPoint(const LocationInfo& location,
+                           const bool translate_frames,
                            LocationInfo* click_location);
   bool GetComputedStyle(IHTMLCSSStyleDeclaration** computed_style);
   bool GetContainingDocument(const bool use_dom_node, IHTMLDocument2** doc);

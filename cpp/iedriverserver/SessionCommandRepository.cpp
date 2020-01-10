@@ -22,11 +22,13 @@
 #include "CommandHandlers/CloseWindowCommandHandler.h"
 #include "CommandHandlers/DismissAlertCommandHandler.h"
 #include "CommandHandlers/GetAlertTextCommandHandler.h"
+#include "CommandHandlers/GetTimeoutsCommandHandler.h"
 #include "CommandHandlers/GetWindowHandleCommandHandler.h"
 #include "CommandHandlers/GetWindowHandlesCommandHandler.h"
 #include "CommandHandlers/NewSessionCommandHandler.h"
 #include "CommandHandlers/QuitCommandHandler.h"
 #include "CommandHandlers/SendAlertTextCommandHandler.h"
+#include "CommandHandlers/SetTimeoutsCommandHandler.h"
 #include "CommandHandlers/SwitchToWindowCommandHandler.h"
 #include "SessionCommandHandler.h"
 
@@ -71,6 +73,8 @@ void SessionCommandRepository::PopulateCommandHandlers() {
   this->command_handlers_[webdriver::CommandType::DismissAlert] = CommandHandlerHandle(new DismissAlertCommandHandler);
   this->command_handlers_[webdriver::CommandType::GetAlertText] = CommandHandlerHandle(new GetAlertTextCommandHandler);
   this->command_handlers_[webdriver::CommandType::SendKeysToAlert] = CommandHandlerHandle(new SendAlertTextCommandHandler);
+  this->command_handlers_[webdriver::CommandType::GetTimeouts] = CommandHandlerHandle(new GetTimeoutsCommandHandler);
+  this->command_handlers_[webdriver::CommandType::SetTimeouts] = CommandHandlerHandle(new SetTimeoutsCommandHandler);
 }
 
 } // namespace webdriver

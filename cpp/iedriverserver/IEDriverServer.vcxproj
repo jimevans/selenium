@@ -175,6 +175,7 @@
     <ClCompile Include="CommandHandlers\SetTimeoutsCommandHandler.cpp" />
     <ClCompile Include="CommandHandlers\SwitchToWindowCommandHandler.cpp" />
     <ClCompile Include="CommandLineArguments.cpp" />
+    <ClCompile Include="FileSelectionDialog.cpp" />
     <ClCompile Include="InstanceManager.cpp" />
     <ClCompile Include="SessionCommandHandler.cpp" />
     <ClCompile Include="IEDriverServer.cpp" />
@@ -194,6 +195,7 @@
     <ClInclude Include="CommandHandlers\SetTimeoutsCommandHandler.h" />
     <ClInclude Include="CommandHandlers\stdafx.h" />
     <ClInclude Include="CommandHandlers\SwitchToWindowCommandHandler.h" />
+    <ClInclude Include="FileSelectionDialog.h" />
     <ClInclude Include="InstanceManager.h" />
     <ClInclude Include="ProxySettings.h" />
     <ClInclude Include="SessionCommandRepository.h" />
